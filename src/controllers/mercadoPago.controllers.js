@@ -26,7 +26,7 @@ const createPlan = (req, res) => {
     back_url: "https://libra.emititupoliza.com",
     payer_email: "test_user_604067994@testuser.com",
     notification_url:
-      "https://cd4b-186-127-141-250.ngrok-free.app/mp/notification",
+      process.env.MP_NOTIFICATION + "/mp/notification",
   };
   console.log(preference);
   const config = {
