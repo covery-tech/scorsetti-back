@@ -3,10 +3,10 @@ require('dotenv').config();
 
 
 var conn = mysql.createConnection({
-  host:"db4free.net",
-  user:"sql10617338",
-  database: process.env.DATABASE,
-  password: process.env.PASSWORD,
+  host:process.env.DB_HOST,
+  user:process.env.DB_USER,
+  database: process.env.DB_DATABASE,
+  password: process.env.DB_PASSWORD,
   port: 3306
 });
 conn.connect((err) => {
