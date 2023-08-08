@@ -10,7 +10,7 @@ const multer  = require('multer')
 // Definir el almacenamiento para los archivos
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, '../api/src/uploads')
+      cb(null, '../scorsetti-back/src/uploads')
     },
     filename: function (req, file, cb) {
         const ext = file.originalname.split('.').pop()
@@ -18,7 +18,6 @@ const storage = multer.diskStorage({
     }
   });
   
-  // Crear un middleware de Multer
   const upload = multer({ storage: storage });
 
 router.post("/image",upload.single('image'),tokenValidation,img)

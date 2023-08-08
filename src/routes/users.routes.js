@@ -1,6 +1,6 @@
 const express = require("express");
 const { prueba1 } = require("../controllers/products.controllers");
-const {register, postLogin, getUserById, updateTypeUser,getImageLarge, getPasUser, getStatusPas, searchUserByEmail, getPasById, getImage, myPersonalData, updateUserInfo, getClientsOfPas, getAllUsers} = require("../controllers/users.controllers")
+const {register, postLogin, getUserById, updateTypeUser,getImageLarge, getPasUser, getStatusPas, searchUserByEmail, getPasById, getImage, myPersonalData, updateUserInfo, getClientsOfPas, getAllUsers, getAllRoutes} = require("../controllers/users.controllers")
 const {tokenValidation} = require("../lib/validateToken") 
 const router = express.Router();
 
@@ -21,4 +21,5 @@ router
     .put("/updateUserInfo",tokenValidation,updateUserInfo)
     .get("/getClientsOfPas/:idPas",tokenValidation,getClientsOfPas)
     .get("/getAllUsers/:page",tokenValidation,getAllUsers)
+    .get("/pasRoutes/:id", getAllRoutes)
 module.exports = router

@@ -354,6 +354,19 @@ const getClientsOfPas = (req,res)=>{
     }
 }
 
+const getAllRoutes = (req, res) => {    
+    const getRoutes = `SELECT route FROM personal_data where id_user = ${req.params.id}`;
+    try {
+        conn.query(getRoutes, function(err, resp){
+            if (err) return res.status(500).send("an error occurred");
+            else {
+                return res.status(200).send(resp[0]);
+            }
+        })
+    } catch (error) {
+        return res.status(400).send("server error");
+    }
+}
 
 
 module.exports = {
@@ -370,5 +383,6 @@ module.exports = {
     updateUserInfo,
     getImageLarge,
     getClientsOfPas,
-    getAllUsers
+    getAllUsers,
+    getAllRoutes
 }
