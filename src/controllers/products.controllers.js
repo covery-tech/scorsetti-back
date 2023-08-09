@@ -494,7 +494,8 @@ const getAllOrdersByPas = (req, res) => {
 const postOrdersBackoffice = (req, res) => {
     const data = req.body;
     const jsonDescription = JSON.stringify(data.description)
-    const queryBackoffice = `INSERT INTO orders_backoffice (type, description) VALUES ('${data.type}', '${jsonDescription}')`;
+    const jsonClient = JSON.stringify(data.client)
+    const queryBackoffice = `INSERT INTO orders_backoffice (type, description, client) VALUES ('${data.type}', '${jsonDescription}', '${jsonClient}')`;
     try {
         conn.query(queryBackoffice, (err, results) => {
             if (err) res.status(500).send(err);
