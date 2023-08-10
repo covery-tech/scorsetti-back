@@ -8,7 +8,7 @@ const createForm = (req,res)=>{
     try{
         if(validate){
         conn.query(queryIntroSQL,(err,res)=>{
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 
                 res.status(200).send(true)
@@ -27,7 +27,7 @@ const editForm = (req,res)=>{
     try{
         if(user.type=="admin" || user.type=="superadmin" || user.type=="pas"){
         conn.query(queryUpdateSQL,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 //(result)
                 res.status(200).send(true)
@@ -45,7 +45,7 @@ const deleteForm = (req,res)=>{
     const queryDeleteSQL = `DELETE FROM forms WHERE forms.id =${id} ` 
     try{
         conn.query(queryDeleteSQL,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 //(result)
                 res.status(200).send(true)
@@ -62,7 +62,7 @@ const getFormById = (req,res)=>{
     const querySearchId = `SELECT * FROM forms WHERE id = ${formId}`
     try{
         conn.query(querySearchId,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 let data = JSON.parse(result[0].info_form)
 

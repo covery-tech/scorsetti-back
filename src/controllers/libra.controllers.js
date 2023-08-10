@@ -261,7 +261,7 @@ const getMotoBrands = (req, res) => {
     "SELECT DISTINCT brand, cod_brand FROM moto_data order by brand ASC;";
   try {
     conn.query(queryGetBrands, function (err, result) {
-      if (err) throw err;
+      if (err) res.status(400).send(err);
       else {
         res.status(200).send(result);
       }
@@ -278,7 +278,7 @@ const getMotoModels = (data, res) => {
     "SELECT DISTINCT model, cod_model FROM moto_data WHERE cod_brand = ? ORDER BY model ASC;";
   try {
     conn.query(queryGetModels, [cod_brand], function (err, result) {
-      if (err) throw err;
+      if (err) res.status(400).send(err);
       else {
         res.status(200).send(result);
       }
