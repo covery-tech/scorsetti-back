@@ -5,7 +5,7 @@ const getProductCard = (req, res) => {
     // const querySelectSQL = "SELECT * FROM `forms`"
     // try{
     //     conn.query(querySelectSQL,function(err,result){
-    //         if(err) throw err
+    //         if(err) res.status(400).send(err)
     //         const info = result?.map(e=>{
     //             let data = JSON.parse(e.info_form)
     //             return {
@@ -28,7 +28,7 @@ const createInterTableProductUser = (req, res) => {
     const queryIntoNewProduct = `INSERT INTO user_product ( id_user, id_product, create_date ) VALUES (${idUser},${idProduct},"${fechaActual}");`;
     try {
         conn.query(queryIntoNewProduct, function (err, result) {
-            if (err) throw err;
+            if (err) res.status(400).send(err);
             else {
                 //(result);
                 res.status(200).send(true);
@@ -41,7 +41,7 @@ const createInterTableProductUser = (req, res) => {
 
 const getPassProductsEneable = (req, res) => {
     const { idUser } = req.params;
-    const querySelectProducts = `SELECT * FROM products_users WHERE users_id = ${idUser}`;
+    const querySelectProducts = `SELECT * FROM products_users WHERE users_id = '${idUser}'`;
     try {
         conn.query(querySelectProducts, function (err, result) {
             if (err) res.status(400).send(err);
@@ -74,10 +74,10 @@ const getPassProductsEneable = (req, res) => {
 
 const updateStatusProduct = (req, res) => {
     const { status, idPas, column } = req.params;
-    const queryUpdateSQL = `UPDATE products_users SET ${column} = "${status}" WHERE users_id = ${idPas};`;
+    const queryUpdateSQL = `UPDATE products_users SET ${column} = "${status}" WHERE users_id = '${idPas}';`;
     try {
         conn.query(queryUpdateSQL, function (err, result) {
-            if (err) throw err;
+            if (err) res.status(400).send(err);
             else {
                 res.status(200).send(true);
             }
@@ -89,8 +89,7 @@ const updateStatusProduct = (req, res) => {
 
 const getPassProductsAll = (req, res) => {
     const { idUser } = req.params;
-    console.log(idUser);
-    const query = `select * from products_users where users_id = ${idUser}`;
+    const query = `select * from products_users where users_id = '${idUser}'`;
     try {
         conn.query(query, (err, resp) => {
             if (err) return res.status(500).send("server error");
@@ -106,49 +105,24 @@ const getPassProductsAll = (req, res) => {
                     name: "moto",
                 },
                 {
-                    title: "Familiar",
-                    status: resp[0]?.familiar,
-                    name: "familiar",
+                    title: "Hogar",
+                    status: resp[0]?.hogar,
+                    name: "hogar",
                 },
                 {
-                    title: "Comercio",
-                    status: resp[0]?.comercio,
-                    name: "comercio",
-                },
-                {
-                    title: "Vida",
-                    status: resp[0]?.vida,
-                    name: "vida",
+                    title: "Avipar",
+                    status: resp[0]?.avipar,
+                    name: "avipar",
                 },
                 {
                     title: "Accidentes Personales",
                     status: resp[0]?.acc_personal,
-                    name: "acc_personal",
+                    name: "ap",
                 },
                 {
-                    title: "Ecomovil",
-                    status: resp[0]?.ecomovil,
-                    name: "ecomovil",
-                },
-                {
-                    title: "Consorcio",
-                    status: resp[0]?.consorcio,
-                    name: "consorcio",
-                },
-                {
-                    title: "Caucion",
-                    status: resp[0]?.caucion,
-                    name: "caucion",
-                },
-                {
-                    title: "Viajero",
-                    status: resp[0]?.viajero,
-                    name: "viajero",
-                },
-                {
-                    title: "Cripto",
-                    status: resp[0]?.cripto,
-                    name: "cripto",
+                    title: "Cotización Grupal Motos y Autos",
+                    status: resp[0]?.coti_auto_moto,
+                    name: "coti_auto_moto",
                 },
             ];
             return res.status(200).send(data);
@@ -161,7 +135,7 @@ const getPassProductsAll = (req, res) => {
 const getMyProductsSale = (req, res) => {
     const { idPas, page } = req.params;
     const number = parseInt(page);
-    const query = `select orders.*,personal_data.* from orders  join personal_data on orders.users_id = personal_data.id_user where orders.pas_id = ${idPas} LIMIT ${
+    const query = `select orders.*,personal_data.* from orders  join personal_data on orders.users_id = personal_data.id_user where orders.pas_id = '${idPas}' LIMIT ${
         (number - 1) * 7
     }, 7;`;
     try {
@@ -176,7 +150,7 @@ const getMyProductsSale = (req, res) => {
 
 const numberOfOrders = (req, res) => {
     const { idPas } = req.params;
-    const query = `select COUNT(*) from orders where pas_id = ${idPas} AND status_payment='authorized'`;
+    const query = `select COUNT(*) from orders where pas_id = '${idPas}' AND status_payment='authorized'`;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -199,7 +173,7 @@ const reduceArrayWithElementsRepeat = (array) => {
 
 const numberOfClients = (req, res) => {
     const { idPas } = req.params;
-    const query = `select users_id from orders where pas_id = ${idPas}`;
+    const query = `select users_id from orders where pas_id ='${idPas}'`;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -216,7 +190,7 @@ const numberOfClients = (req, res) => {
 
 const amountOfOrders = (req, res) => {
     const { idPas } = req.params;
-    const query = `select amount from orders where pas_id = ${idPas} AND status_payment = 'authorized'`;
+    const query = `select amount from orders where pas_id = '${idPas}' AND status_payment = 'authorized'`;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -236,7 +210,7 @@ const amountOfOrders = (req, res) => {
 
 const emitNotificationPas = (req, res) => {
     const { idPas, description } = req.body;
-    const emitNotification = `INSERT INTO notification (idPas,description,emmiter_type) VALUES (${idPas},'${description}','pas')`;
+    const emitNotification = `INSERT INTO notification (idPas,description,emmiter_type) VALUES ('${idPas}','${description}','pas')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -289,8 +263,7 @@ const getNotificationPas = (req, res) => {
 
 const deleteNotificationAdmin = (req, res) => {
     const { idNoti } = req.params;
-    console.log(idNoti);
-    const queryUpdate = `UPDATE notification set enable = "0" where id = ${idNoti}`;
+    const queryUpdate = `UPDATE notification set enable = "0" where id = '${idNoti}'`;
     try {
         conn.query(queryUpdate, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -304,7 +277,7 @@ const deleteNotificationAdmin = (req, res) => {
 const deleteNotificationPas = (req, res) => {
     const { idNoti } = req.params;
 
-    const queryUpdate = `UPDATE notification_for_user set enable = "0" where id = ${idNoti}`;
+    const queryUpdate = `UPDATE notification_for_user set enable = "0" where id = '${idNoti}'`;
     try {
         conn.query(queryUpdate, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -317,7 +290,7 @@ const deleteNotificationPas = (req, res) => {
 
 const emitNotificationAdmin = (req, res) => {
     const { idPas, description, idAdmin } = req.body;
-    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES (${idPas},'${description}',${idAdmin})`;
+    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas}','${description}',${idAdmin})`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -335,7 +308,6 @@ const getCountNotis = (req, res) => {
     try {
         const query = `select COUNT(*) from notification where enable='1'`;
         conn.query(query, (err, resp) => {
-            console.log(resp);
             if (err) res.status(500).send(err);
             else {
                 res.status(200).send(resp);
@@ -351,7 +323,6 @@ const getCountNotisPas = (req, res) => {
     try {
         const query = `select COUNT(*) from notification_for_user where enable='1' AND id_pas = ${user.id}`;
         conn.query(query, (err, resp) => {
-            console.log(resp);
             if (err) res.status(500).send(err);
             else {
                 res.status(200).send(resp);
@@ -364,7 +335,6 @@ const getCountNotisPas = (req, res) => {
 
 const postCoti = (req, res) => {
     const { idPas, data, idAdmin } = req.body;
-    console.log(idPas, data);
     let id;
     if (idPas) {
         id = idPas;
@@ -393,7 +363,6 @@ const postCoti = (req, res) => {
 
 const postCotiJson = (req, res) => {
     const { idPas, data, idAdmin, jsonData } = req.body;
-    console.log(idPas, data, jsonData);
     let id;
     if (idPas) {
         id = idPas;
@@ -428,7 +397,6 @@ const getAllOrders = (req, res) => {
     try {
         conn.query(ordersQuery, (err, results) => {
             if (err) {
-                console.error(err);
                 res.status(500).send(
                     "Error al obtener los datos de las tablas 'orders' y 'orders_records': " +
                         err
@@ -443,7 +411,6 @@ const getAllOrders = (req, res) => {
             res.status(200).json(data);
         });
     } catch (err) {
-        console.error(err);
         res.status(500).send(
             "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
         );
@@ -464,14 +431,12 @@ const getAllOrdersByPas = (req, res) => {
     try {
         conn.query(ordersQuery, [idPas, idPas], (err, results) => {
             if (err) {
-                console.error(err);
                 res.status(500).send(
                     "Error al obtener los datos de las tablas 'orders' y 'orders_records':" +
                         err
                 );
                 return;
             }
-            console.log(results);
             const data = {
                 ordersData: results,
             };
@@ -479,7 +444,6 @@ const getAllOrdersByPas = (req, res) => {
             res.status(200).json(data);
         });
     } catch (err) {
-        console.error(err);
         res.status(500).send(
             "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
         );

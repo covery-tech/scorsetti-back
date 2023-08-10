@@ -10,7 +10,7 @@ const register = (req,res)=>{
     try{
         if(name.length || lastName.length || date.length || password.length || email.length){
         conn.query(querySearchUserSQL, function(err,result2){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             if(!result2.length){
                 conn.query(queryIntroSQL,(err2,results)=>{
                     const queryInsertType =`INSERT INTO type_user (id_user,type) VALUES (${results.insertId},"client")`
@@ -39,7 +39,7 @@ const postLogin = async (req, res)=>{
     const querySearchUserSQL = `SELECT * FROM personal_data WHERE email = '${email}'`
     try{
         conn.query(querySearchUserSQL,async function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             const passwordCorrect = result[0]?.password === password
             if(!(result[0] && passwordCorrect)){
                 res.status(401).send("invalid user or password")
@@ -76,7 +76,7 @@ const postLogin = async (req, res)=>{
 
 const getImage=(req,res)=>{
     const {user} = req
-    conn.query(`select img from users where id = ${user.id}`,(err,resp)=>{
+    conn.query(`select img from users where id = '${user.id}'`,(err,resp)=>{
         if(err) res.status(404).send(err)
         else {
             //(resp[0].img)
@@ -89,8 +89,8 @@ const getImage=(req,res)=>{
 
 const getImageLarge=(req,res)=>{
     const {userId} = req.params
-    conn.query(`select img from users where id = ${userId}`,(err,resp)=>{
-        if(err) throw err
+    conn.query(`select img from users where id = '${userId}'`,(err,resp)=>{
+        if(err) res.status(400).send(err)
         else {
             if(resp[0]?.img){
             const image = `/large-${resp[0].img.split("-")[1]}`
@@ -106,10 +106,10 @@ const getImageLarge=(req,res)=>{
 
 const getUserById = (req,res)=>{
     const {idUser} = req.params
-    const querySearchId = `SELECT * FROM users WHERE id = ${idUser}`
+    const querySearchId = `SELECT * FROM users WHERE id = '${idUser}'`
     try{
         conn.query(querySearchId,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 res.status(200).send(result)
             }
@@ -121,7 +121,7 @@ const getUserById = (req,res)=>{
 
 const getPasById = (req,res)=>{
     const {idUser} = req.params
-    const queryTypePas = `SELECT * from type_user where id_user = ${idUser}`
+    const queryTypePas = `SELECT * from type_user where id_user = '${idUser}'`
     const querySearchId = `SELECT location.*, personal_data.*,type_user.type, users.img ,users.description, type_user.status_pas FROM users join personal_data JOIN type_user JOIN location ON location.users_id = personal_data.id_user AND users.id = personal_data.id_user AND personal_data.id_user=type_user.id_user WHERE location.users_id = ${idUser}`
     try{
         conn.query(queryTypePas,function(error,response){
@@ -129,8 +129,7 @@ const getPasById = (req,res)=>{
             
             if(response.length){
                 conn.query(querySearchId,function(err,result){
-                    // //(result)
-                    if(err) res.status(404).send(err)
+                    if(err) res.status(400).send(err)
                     else{
                         let coords
                         //(result[0].type)
@@ -172,20 +171,20 @@ const updateTypeUser = (req,res)=>{
     const {type,idUser} = req.params
     const {user} = req
     const validate = validateUserType(user.type)
-    const queryUpdateSQL = `UPDATE type_user SET type = "${type}" WHERE id_user = ${idUser};`
-    const querySearchRegister = `SELECT * FROM products_users WHERE users_id=${idUser};` 
+    const queryUpdateSQL = `UPDATE type_user SET type = "${type}" WHERE id_user = '${idUser}';`
+    const querySearchRegister = `SELECT * FROM products_users WHERE users_id='${idUser}';` 
     try{
         if( validate ){
         conn.query(queryUpdateSQL,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err) 
             else{
                 conn.query(querySearchRegister,function(err2,result2){
-                    if(err2) throw err2
+                    if(err2) res.status(400).send(err2) 
                     else if(!result2.length){
                         conn.query(`INSERT INTO 
                         products_users 
                         (users_id) 
-                        VALUES (${idUser})`)
+                        VALUES ('${idUser}')`)
                         res.status(200).send(true)
                     }
                     else res.status(200).send(true)
@@ -210,7 +209,7 @@ const getPasUser = (req, res) => {
     try {
         conn.query(query, (err, result) => {
             if (err) {
-                throw err
+                res.status(400).send(err)
             } 
             else {
                     res.status(200).send(result)
@@ -229,7 +228,7 @@ const getAllUsers = (req, res) => {
     try {
         conn.query(query, (err, result) => {
             if (err) {
-                throw err
+                res.status(400).send(err)
             } 
             else {
                     res.status(200).send(result)
@@ -247,11 +246,11 @@ const getStatusPas = (req,res)=>{
     const {estatus,idUser} = req.params
     const {user} = req
     const validate = validateUserType(user.type)
-    const queryUpdateSQL = `UPDATE type_user SET status_pas = "${estatus}" WHERE id_user = ${idUser} ;`
+    const queryUpdateSQL = `UPDATE type_user SET status_pas = "${estatus}" WHERE id_user = '${idUser}' ;`
     try{
         if(validate){
         conn.query(queryUpdateSQL,function(err,result){
-            if(err) throw err
+            if(err) res.status(400).send(err)
             else{
                 res.status(200).send(true)
             }
@@ -288,7 +287,7 @@ const myPersonalData = (req,res)=>{
     const location = `select location.* , personal_data.password, users.img,users.description, personal_data.phone_number from location join personal_data join users where location.users_id = ${user.id} AND personal_data.id_user=${user.id} AND users.id =${user.id}`
     try{
                 conn.query(location,(error, e)=>{
-                    if(error) throw error
+                    if(error) res.status(400).send(err)
                     else{
                         //(e[0])
                         let coords;
@@ -318,7 +317,7 @@ const updateUserInfo = (req,res)=>{
     const {users} = req.body
     const {user} = req
 
-    const upadatePersonalData = `UPDATE personal_data SET phone_number = "${users.phone_number || ""}" WHERE id_user = ${user.id}`
+    const upadatePersonalData = `UPDATE personal_data SET phone_number = "${users.phone_number || ""}" WHERE id_user = '${user.id}'`
     let coord = users.coords.split(",")
     coord = {
         long:coord[0],
@@ -326,8 +325,8 @@ const updateUserInfo = (req,res)=>{
     }
     coord = JSON.stringify(coord) 
     //(coord)
-    const updateCoords = `UPDATE location SET coords = '${coord || ""}' , street_name = "${users.street_name || ""}" , city = "${users.city || ""}" , province = "${users.province || ""}", postal_code = "${users.postal_code || ""}" WHERE users_id = ${user.id};`
-    const updateUser = `UPDATE users SET description = '${users.description}' where id = ${user.id}`
+    const updateCoords = `UPDATE location SET coords = '${coord || ""}' , street_name = "${users.street_name || ""}" , city = "${users.city || ""}" , province = "${users.province || ""}", postal_code = "${users.postal_code || ""}" WHERE users_id = '${user.id}';`
+    const updateUser = `UPDATE users SET description = '${users.description}' where id = '${user.id}'`
     try{
         conn.query(upadatePersonalData)
         conn.query(updateCoords)
@@ -341,7 +340,7 @@ const updateUserInfo = (req,res)=>{
 const getClientsOfPas = (req,res)=>{
     const {idPas} = req.params
     //(idPas)
-    const searchClientsPas = `select * from orders where pas_id = ${idPas} AND status_payment ='authorized'`
+    const searchClientsPas = `select * from orders where pas_id = '${idPas}' AND status_payment ='authorized'`
     try{
         conn.query(searchClientsPas,function(err,resp){
             if(err) return res.status(500).send("an error occurred")
@@ -355,7 +354,7 @@ const getClientsOfPas = (req,res)=>{
 }
 
 const getAllRoutes = (req, res) => {    
-    const getRoutes = `SELECT route FROM personal_data where id_user = ${req.params.id}`;
+    const getRoutes = `SELECT route FROM personal_data where id_user = '${req.params.id}'`;
     try {
         conn.query(getRoutes, function(err, resp){
             if (err) return res.status(500).send("an error occurred");
