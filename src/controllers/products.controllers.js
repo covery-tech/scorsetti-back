@@ -50,16 +50,11 @@ const getPassProductsEneable = (req, res) => {
                     let data = [
                         result[0].auto === "habilitado" && "auto",
                         result[0].moto === "habilitado" && "moto",
-                        result[0].familiar === "habilitado" && "familiar",
-                        result[0].comercio === "habilitado" && "comercio",
-                        result[0].consorcio === "habilitado" && "consorcio",
-                        result[0].vida === "habilitado" && "vida",
+                        result[0].hogar === "habilitado" && "hogar",
+                        result[0].avipar === "habilitado" && "avipar",
                         result[0].acc_personal === "habilitado" &&
-                            "acc_personal",
-                        result[0].ecomovil === "habilitado" && "ecomovil",
-                        result[0].caucion === "habilitado" && "caucion",
-                        result[0].viajero === "habilitado" && "viajero",
-                        result[0].cripto === "habilitado" && "cripto",
+                            "ap",
+                        result[0].coti_auto_moto === "habilitado" && "grupomotoauto",
                     ];
                     data = data.filter((e) => e !== false);
                     data = {
