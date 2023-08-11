@@ -1,5 +1,5 @@
 const express = require("express")
-const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, postCoti, postCotiJson, getAllOrders, getAllOrdersByPas, postOrdersBackoffice} = require("../controllers/products.controllers");
+const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, postCoti, postCotiJson, getAllOrders, getAllOrdersByPas, postOrdersBackoffice, dairySales} = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
 
 const router = express.Router();
@@ -12,9 +12,10 @@ router
     .get("/getProductsPasAll/:idUser",getPassProductsAll)
     .put("/statusProduct/:status/:idPas/:column",tokenValidation,updateStatusProduct)
     .get("/getMyProductsSale/:idPas/:page",getMyProductsSale)
-    .get("/numberOfOrders/:idPas",numberOfOrders)
-    .get("/numberOfClients/:idPas",numberOfClients)
-    .get("/amountOfOrders/:idPas",amountOfOrders)
+    .get("/numberOfOrders",tokenValidation,numberOfOrders)
+    .get("/numberOfClients",tokenValidation,numberOfClients)
+    .get("/amountOfOrders",tokenValidation,amountOfOrders)
+    .get("/dairySales/:fecha",tokenValidation,dairySales)
     .post("/emitNotificationPas",emitNotificationPas)
     .put("/deleteNotificationAdmin/:idNoti",deleteNotificationAdmin)
     .put("/deleteNotificationPas/:idNoti",deleteNotificationPas)
@@ -25,7 +26,7 @@ router
     .get("/getCountNotisPas",tokenValidation,getCountNotisPas)
     .post("/postCotization",postCoti)
     .post("/postCotizationJson",postCotiJson)
-    .get("/getAllOrdersByPas/:idPas",getAllOrdersByPas)
+    .get("/getAllOrdersByPas/:idPas?",getAllOrdersByPas)
     .get("/getAllOrders",getAllOrders)
     .post("/postOrdersBack", postOrdersBackoffice)
     
