@@ -43,9 +43,9 @@ const createPlan = (req, res) => {
       console.log(response.data);
       const order = response.data;
       conn.query(
-        `INSERT INTO orders (date,users_id,amount,repetitions,type,vehicle,status_payment,application_id,pas_id, date_update) 
+        `INSERT INTO orders (users_id,amount,repetitions,type,vehicle,status_payment,application_id,pas_id, date_update) 
           VALUES 
-          ("${order.date_created}","${usersId}",${order.auto_recurring.transaction_amount},${order.auto_recurring.repetitions},"suscription","${vehicle}","create-plan","${order.id}","${pas_id}",CURRENT_TIMESTAMP)`,
+          ("${usersId}",${order.auto_recurring.transaction_amount},${order.auto_recurring.repetitions},"suscription","${vehicle}","create-plan","${order.id}","${pas_id}",CURRENT_TIMESTAMP)`,
         (err, result) => {
           if (err) return res.status(400).send(err);
           else {

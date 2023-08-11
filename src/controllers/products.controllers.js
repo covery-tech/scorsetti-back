@@ -149,8 +149,10 @@ const getMyProductsSale = (req, res) => {
 };
 
 const numberOfOrders = (req, res) => {
-    const { idPas } = req.params;
-    const query = `select COUNT(*) from orders where pas_id = '${idPas}' AND status_payment='authorized'`;
+    const user = req.user;
+    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
+
+    const query = userType ? `select COUNT(*) from orders where pas_id = '${userType}' AND status_payment='authorized'` :`select COUNT(*) from orders where status_payment='authorized'` ;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -172,8 +174,9 @@ const reduceArrayWithElementsRepeat = (array) => {
 };
 
 const numberOfClients = (req, res) => {
-    const { idPas } = req.params;
-    const query = `select users_id from orders where pas_id ='${idPas}'`;
+    const user = req.user;
+    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
+    const query = userType ? `select users_id from orders where pas_id ='${userType}'` : `select users_id from orders`;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -189,8 +192,9 @@ const numberOfClients = (req, res) => {
 };
 
 const amountOfOrders = (req, res) => {
-    const { idPas } = req.params;
-    const query = `select amount from orders where pas_id = '${idPas}' AND status_payment = 'authorized'`;
+    const user = req.user;
+    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
+    const query = userType ?  `select amount from orders where pas_id = '${userType}' AND status_payment = 'authorized'` : `select amount from orders where status_payment = 'authorized'`;
     try {
         conn.query(query, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -207,6 +211,21 @@ const amountOfOrders = (req, res) => {
         res.status(400).send(err);
     }
 };
+
+const dairySales = (req,res)=> {
+    const user = req.user;
+    const fecha = req.params.fecha;
+    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
+  const sqlQuery = userType ? `SELECT SUM(amount) AS total_ventas FROM orders WHERE DATE(date) = '${fecha}' AND pas_id = '${userType}'`:`SELECT SUM(amount) AS total_ventas FROM orders WHERE DATE(date) = '${fecha}'`;
+
+  conn.query(sqlQuery, (err, results) => {
+    if (err) {
+      return res.status(500).json({ error: 'Error interno del servidor' });
+    }
+    const totalVentas = results[0]?.total_ventas || 0;
+    res.json({ fecha, totalVentas });
+  });
+}
 
 const emitNotificationPas = (req, res) => {
     const { idPas, description } = req.body;
@@ -240,7 +259,6 @@ const getNotificationAdmin = (req, res) => {
         res.status(400).send(err);
     }
 };
-// const queryUpdateSQL = `UPDATE products_users SET ${column} = "${status}" WHERE users_id = ${idPas};`;
 
 const getNotificationPas = (req, res) => {
     const { page } = req.params;
@@ -418,23 +436,88 @@ const getAllOrders = (req, res) => {
 };
 
 const getAllOrdersByPas = (req, res) => {
-    const idPas = 6;
-    // const idPas = req.params.idPas;
-    const page = parseInt(req.query.page) || 1; // Obtener el número de página de la consulta
-    const limit = parseInt(req.query.limit) || 10; // Obtener la cantidad de resultados por página
-
-    // Calcular el desplazamiento (offset) basado en la página actual y la cantidad de resultados por página
-    const offset = (page - 1) * limit;
-
-    const ordersQuery = `
-      SELECT orders.type, orders.id, orders.date, orders.users_id, orders.amount, orders.status_payment, orders.application_id, orders.pas_id, orders.client_id_mercado, orders.name, orders.last_name, orders.phone_number, orders.email, NULL AS sub_type, NULL AS document, NULL AS phone, NULL AS province, NULL AS price, orders.all_person, NULL AS description, NULL AS description, NULL AS client, NULL AS cotizated
-      FROM orders
-      UNION ALL
-      SELECT orders_backoffice.type, orders_backoffice.id, orders_backoffice.date, orders_backoffice.user_id, NULL AS amount, NULL AS status_payment, NULL AS application_id, NULL AS pas_id, NULL AS client_id_mercado, NULL AS name, NULL AS lastname, NULL AS phone, NULL AS email, NULL AS sub_type, NULL AS document, NULL AS phone, NULL AS province, NULL AS price, orders_backoffice.description AS all_person, NULL AS description, orders_backoffice.description, orders_backoffice.client, orders_backoffice.cotizated
-      FROM orders_backoffice      
+    const { idPas } = req.params
+    const page = parseInt(req.query.page) || 1;
+    const ordersQuery = idPas ? `
+    SELECT orders.type,
+    orders.id,
+    orders.date, 
+    orders.users_id, 
+    orders.amount, 
+    orders.status_payment,
+    orders.pas_id, 
+    orders.name, 
+    orders.last_name, 
+    orders.phone_number, 
+    orders.email, 
+    NULL AS sub_type,
+    NULL AS province,
+    orders.all_person, 
+    NULL AS description, 
+    NULL AS client, 
+    NULL AS cotizated
+FROM orders
+WHERE pas_id = '${idPas}'
+UNION
+SELECT orders_backoffice.type,
+    orders_backoffice.id, 
+    orders_backoffice.date, 
+    orders_backoffice.users_id, 
+    orders_backoffice.pas_id,
+    NULL AS amount, 
+    NULL AS status_payment,   
+    NULL AS name, 
+    NULL AS last_name, 
+    NULL AS phone_number, 
+    NULL AS email, 
+    NULL AS sub_type, 
+    NULL AS province, 
+    NULL AS all_person, 
+    orders_backoffice.description,
+    orders_backoffice.client,
+    orders_backoffice.cotizated
+FROM orders_backoffice 
+WHERE pas_id = '${idPas}'     
+ORDER BY date DESC
+LIMIT ${(page - 1) * 7},7
+` : 
+      `SELECT orders.type,
+        orders.id,
+        orders.date, 
+        orders.users_id, 
+        orders.amount, 
+        orders.status_payment,
+        orders.pas_id, 
+        orders.name, 
+        orders.last_name, 
+        orders.phone_number, 
+        orders.email, 
+        NULL AS sub_type,
+        NULL AS province,
+        orders.all_person, 
+        NULL AS description, 
+        NULL AS client, 
+        NULL AS cotizated FROM orders UNION ALL SELECT orders_backoffice.type,orders_backoffice.id, orders_backoffice.date, orders_backoffice.users_id, orders_backoffice.pas_id,NULL AS amount, NULL AS status_payment, NULL AS name, NULL AS last_name, NULL AS phone_number, NULL AS email, NULL AS sub_type, NULL AS province, NULL AS all_person, orders_backoffice.description, orders_backoffice.client, orders_backoffice.cotizated
+      FROM orders_backoffice     
       ORDER BY date DESC
-      LIMIT ${limit}
-      OFFSET ${offset}`;
+      LIMIT ${(page - 1) * 7},7`;
+
+    const queryCount =idPas ? `
+    SELECT COUNT(*) AS total_records
+    FROM orders
+    WHERE pas_id = '${idPas}'
+    UNION
+    SELECT COUNT(*) AS total_records    
+    FROM orders_backoffice 
+    WHERE pas_id = '${idPas}'
+` : `
+SELECT COUNT(*) AS total_records
+    FROM orders
+    UNION
+    SELECT COUNT(*) AS total_records    
+    FROM orders_backoffice 
+`
+
 
     try {
         conn.query(ordersQuery, (err, results) => {
@@ -445,51 +528,34 @@ const getAllOrdersByPas = (req, res) => {
                 );
                 return;
             }
-            // {
-            //     type: 'Auto',
-            //     id: 19,
-            //     date: 'NOW()',
-            //     users_id: '6',
-            //     amount: null,
-            //     status_payment: null,
-            //     application_id: null,
-            //     pas_id: null,
-            //     client_id_mercado: null,
-            //     name: null,
-            //     last_name: null,
-            //     phone_number: null,
-            //     email: null,
-            //     sub_type: null,
-            //     document: null,
-            //     phone: null,
-            //     province: null,
-            //     price: null,
-            //     all_person: '{"año":"2015","marca":"Renault","modelo":"Clio 1.2","cerokm":false,"tipo_uso":"Particular","vigencia":"Mensual"}',
-            //     description: '{"año":"2015","marca":"Renault","modelo":"Clio 1.2","cerokm":false,"tipo_uso":"Particular","vigencia":"Mensual"}',
-            //     client: '{"nombre":"Patricio","apellido":"Pereyra Gargiulo","tipo_documento":"DNI","numero_documento":"44069182","sexo":"Masculino","fecha_nacimiento":"2002-03-05","domicilio":"B siglo 21","ciudad":"Capital","provincia":"Santiago del estero","email":"Patricioperey',
-            //     cotizated: 0
-            //   }
 
             const data = results.map((r) => {
                 return {
                     type: r?.type,
                     id: r?.id,
                     date: r?.date,
-                    id_pas: r?.user_id,
-                    status_payment: r?.status_payment,
-                    application_id: r?.application_id,
-                    client_id_mercado: r?.client_id_mercado,
+                    id_pas: r?.pas_id,
                     name: `${r?.name} ${r?.last_name}`,
                     phone_number: r?.phone_number,
                     email: r?.email,
-                    sub_type: r?.sub_type,
-                    document: r?.document,
                     province: r?.province,
                     amount: r?.amount,
-
+                    users_id: r?.users_id,
+                    all_person: r?.all_person ? JSON.parse(r?.all_person) : r?.all_person,
+                    description: r?.description ? JSON.parse(r.description) : r?.description,
+                    client: r?.client ? JSON.parse(r.client) : r?.client,
+                    cotizated: r?.cotizated,
+                    status_payment: r?.status_payment
                 };
             });
-            res.status(200).json(data);
+            conn.query(queryCount, (error, response) => {
+                if (error) res.status(500).send(error);
+                let sumaTotal = 0;
+                for (const resultado of response) {
+                sumaTotal += resultado.total_records;
+                }
+                res.status(200).json({ orders: data, pages: sumaTotal });
+              });
         });
     } catch (err) {
         res.status(500).send(
@@ -540,4 +606,5 @@ module.exports = {
     getAllOrders,
     getAllOrdersByPas,
     postOrdersBackoffice,
+    dairySales
 };
