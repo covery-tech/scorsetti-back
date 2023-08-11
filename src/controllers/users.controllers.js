@@ -325,11 +325,13 @@ const updateUserInfo = (req,res)=>{
     }
     coord = JSON.stringify(coord) 
     //(coord)
+    const updateRoute = `UPDATE personal_data SET route = '${users.route}' WHERE id = ${user.id}`;
     const updateCoords = `UPDATE location SET coords = '${coord || ""}' , street_name = "${users.street_name || ""}" , city = "${users.city || ""}" , province = "${users.province || ""}", postal_code = "${users.postal_code || ""}" WHERE users_id = '${user.id}';`
     const updateUser = `UPDATE users SET description = '${users.description}' where id = '${user.id}'`
     try{
         conn.query(upadatePersonalData)
         conn.query(updateCoords)
+        conn.query(updateRoute)
         conn.query(updateUser)
         res.status(200).send(true)
     }catch(e){
