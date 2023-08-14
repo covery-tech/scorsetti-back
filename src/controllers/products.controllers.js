@@ -452,8 +452,7 @@ const getAllOrdersByPas = (req, res) => {
     orders.email, 
     NULL AS sub_type,
     NULL AS province,
-    orders.all_person, 
-    NULL AS description, 
+    orders.all_person,      
     NULL AS client, 
     NULL AS cotizated
 FROM orders
@@ -472,8 +471,7 @@ SELECT orders_backoffice.type,
     NULL AS email, 
     NULL AS sub_type, 
     NULL AS province, 
-    NULL AS all_person, 
-    orders_backoffice.description,
+    orders_backoffice.description,     
     orders_backoffice.client,
     orders_backoffice.cotizated
 FROM orders_backoffice 
@@ -495,9 +493,8 @@ LIMIT ${(page - 1) * 7},7
         NULL AS sub_type,
         NULL AS province,
         orders.all_person, 
-        NULL AS description, 
         NULL AS client, 
-        NULL AS cotizated FROM orders UNION ALL SELECT orders_backoffice.type,orders_backoffice.id, orders_backoffice.date, orders_backoffice.users_id, orders_backoffice.pas_id,NULL AS amount, NULL AS status_payment, NULL AS name, NULL AS last_name, NULL AS phone_number, NULL AS email, NULL AS sub_type, NULL AS province, NULL AS all_person, orders_backoffice.description, orders_backoffice.client, orders_backoffice.cotizated
+        NULL AS cotizated FROM orders UNION ALL SELECT orders_backoffice.type,orders_backoffice.id, orders_backoffice.date, orders_backoffice.users_id, orders_backoffice.pas_id,NULL AS amount, NULL AS status_payment, NULL AS name, NULL AS last_name, NULL AS phone_number, NULL AS email, NULL AS sub_type, NULL AS province, orders_backoffice.description AS all_person, orders_backoffice.client, orders_backoffice.cotizated
       FROM orders_backoffice     
       ORDER BY date DESC
       LIMIT ${(page - 1) * 7},7`;
@@ -542,7 +539,7 @@ SELECT COUNT(*) AS total_records
                     amount: r?.amount,
                     users_id: r?.users_id,
                     all_person: r?.all_person ? JSON.parse(r?.all_person) : r?.all_person,
-                    description: r?.description ? JSON.parse(r.description) : r?.description,
+                    description: r?.description ? JSON.parse(r?.description) : r?.description,
                     client: r?.client ? JSON.parse(r.client) : r?.client,
                     cotizated: r?.cotizated,
                     status_payment: r?.status_payment
