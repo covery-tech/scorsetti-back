@@ -284,10 +284,10 @@ const searchUserByEmail = (req,res)=>{
 
 const myPersonalData = (req,res)=>{
     const {user} = req
-    const location = `select location.* , personal_data.password, users.img,users.description, personal_data.phone_number from location join personal_data join users where location.users_id = ${user.id} AND personal_data.id_user=${user.id} AND users.id =${user.id}`
+    const location = `select location.* , personal_data.password, users.img,users.description, personal_data.phone_number from location join personal_data join users where location.users_id ='${user.id}' AND personal_data.id_user='${user.id}' AND users.id ='${user.id}'`
     try{
                 conn.query(location,(error, e)=>{
-                    if(error) res.status(400).send(err)
+                    if(error) res.status(400).send(error)
                     else{
                         //(e[0])
                         let coords;
@@ -325,7 +325,7 @@ const updateUserInfo = (req,res)=>{
     }
     coord = JSON.stringify(coord) 
     //(coord)
-    const updateRoute = `UPDATE personal_data SET route = '${users.route}' WHERE id = ${user.id}`;
+    const updateRoute = `UPDATE personal_data SET route = '${users.route}' WHERE id = '${user.id}'`;
     const updateCoords = `UPDATE location SET coords = '${coord || ""}' , street_name = "${users.street_name || ""}" , city = "${users.city || ""}" , province = "${users.province || ""}", postal_code = "${users.postal_code || ""}" WHERE users_id = '${user.id}';`
     const updateUser = `UPDATE users SET description = '${users.description}' where id = '${user.id}'`
     try{
