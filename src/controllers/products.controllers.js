@@ -1,4 +1,5 @@
 const conn = require("../config/connection");
+const { postNotificationPas, postNotificationClient } = require("../lib/notification");
 const { validateUserType } = require("../lib/validateUserType");
 
 const getProductCard = (req, res) => {
@@ -229,7 +230,7 @@ const dairySales = (req,res)=> {
 
 const emitNotificationPas = (req, res) => {
     const { idPas, description } = req.body;
-    const emitNotification = `INSERT INTO notification (idPas,description,emmiter_type) VALUES ('${idPas}','${description}','pas')`;
+    const emitNotification = `INSERT INTO notification (idPas,description) VALUES ('${idPas}','${description}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -279,6 +280,21 @@ const getNotificationPas = (req, res) => {
     }
 };
 
+const getNotificationClient = (req, res) => {
+    const { page } = req.params;
+    const { user } = req;
+    const number = parseInt(page);
+    let query = `select * from notification_client where enable = '1' and idClient = '${user.id}' LIMIT ${(number - 1) * 7}, 7;`;
+    try {
+        conn.query(query, (err, resp) => {
+            if (err) res.status(500).send(err);
+            else res.status(200).send(resp);
+        });
+    } catch (err) {
+        res.status(400).send(err);
+    }
+};
+
 const deleteNotificationAdmin = (req, res) => {
     const { idNoti } = req.params;
     const queryUpdate = `UPDATE notification set enable = "0" where id = '${idNoti}'`;
@@ -308,7 +324,7 @@ const deleteNotificationPas = (req, res) => {
 
 const emitNotificationAdmin = (req, res) => {
     const { idPas, description, idAdmin } = req.body;
-    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas}','${description}',${idAdmin})`;
+    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas}','${description}','${idAdmin}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) res.status(500).send(err);
@@ -408,32 +424,6 @@ const postCotiJson = (req, res) => {
     }
 };
 
-const getAllOrders = (req, res) => {
-    const ordersQuery =
-        "SELECT `orders`.`id`, `orders`.`date`, `orders`.`users_id`, `orders`.`amount`, `orders`.`type`, `orders`.`status_payment`, `orders`.`application_id`, `orders`.`pas_id`, `orders`.`client_id_mercado`, `orders`.`name`, `orders`.`last_name`, `orders`.`phone_number`, `orders`.`email`, NULL AS `sub_type`, NULL AS `document`, NULL AS `phone`, NULL AS `province`, NULL AS `price`, `orders`.`all_person` FROM `orders` UNION SELECT `orders_records`.`id`, `orders_records`.`date`, NULL AS `users_id`, NULL AS `amount`, NULL AS `type`, NULL AS `status_payment`, NULL AS `application_id`, `orders_records`.`pas_id`, NULL AS `client_id_mercado`, `orders_records`.`name`, `orders_records`.`lastname`, `orders_records`.`phone`, `orders_records`.`email`, `orders_records`.`sub_type`, `orders_records`.`document`, `orders_records`.`phone`, `orders_records`.`province`, `amount` AS `orders_records`.`price`, `orders_records`.`all_person` FROM `orders_records` ORDER BY date ASC";
-
-    try {
-        conn.query(ordersQuery, (err, results) => {
-            if (err) {
-                res.status(500).send(
-                    "Error al obtener los datos de las tablas 'orders' y 'orders_records': " +
-                        err
-                );
-                return;
-            }
-
-            const data = {
-                ordersData: results,
-            };
-
-            res.status(200).json(data);
-        });
-    } catch (err) {
-        res.status(500).send(
-            "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
-        );
-    }
-};
 
 const getAllOrdersByPas = (req, res) => {
     const { idPas } = req.params
@@ -564,12 +554,14 @@ SELECT COUNT(*) AS total_records
     }
 };
 
-const postOrdersBackoffice = (req, res) => {
-    const pas_id = req.body.params
-    const { tipo, description, client } = req.body.values;
+const postOrdersBackoffice = async (req, res) => {
+    const {pas_id} = req.query
+    const { tipo, description, client, users_id } = req.body.values;
     const jsonDescription = JSON.stringify(description);
+    await postNotificationPas(pas_id,`Posible nuevo cliente, datos de contacto: Email ${client.email} , Tel: ${client.telefono}`,users_id)
+    await postNotificationClient(users_id,`En breve un operador se comunicara con usted via email o whatsapp`)
     const jsonClient = JSON.stringify(client);
-    const queryBackoffice = `INSERT INTO orders_backoffice (type, description, client, pas_id) VALUES ('${tipo}', '${jsonDescription}', '${jsonClient}', ${pas_id})`;
+    const queryBackoffice = `INSERT INTO orders_backoffice (type, description, client, pas_id,users_id) VALUES ('${tipo}', '${jsonDescription}', '${jsonClient}', '${pas_id}','${users_id}')`;
     try {
         conn.query(queryBackoffice, (err, results) => {
             if (err) res.status(500).send(err);
@@ -580,6 +572,109 @@ const postOrdersBackoffice = (req, res) => {
         });
     } catch (err) {
         res.status(400).send(err);
+    }
+};
+
+const getAllOrdersByUser = (req, res) => {
+    const user  = req.user
+    const page = parseInt(req.query.page) || 1;
+    const ordersQuery =`
+    SELECT orders.type,
+    orders.id,
+    orders.date, 
+    orders.users_id, 
+    orders.amount, 
+    orders.status_payment,
+    orders.pas_id, 
+    orders.name, 
+    orders.last_name, 
+    orders.phone_number, 
+    orders.email, 
+    NULL AS sub_type,
+    NULL AS province,
+    orders.all_person, 
+    NULL AS description, 
+    NULL AS client, 
+    NULL AS cotizated
+FROM orders
+WHERE users_id = '${user.id}'
+UNION
+SELECT orders_backoffice.type,
+    orders_backoffice.id, 
+    orders_backoffice.date, 
+    orders_backoffice.users_id, 
+    orders_backoffice.pas_id,
+    NULL AS amount, 
+    NULL AS status_payment,   
+    NULL AS name, 
+    NULL AS last_name, 
+    NULL AS phone_number, 
+    NULL AS email, 
+    NULL AS sub_type, 
+    NULL AS province, 
+    NULL AS all_person, 
+    orders_backoffice.description,
+    orders_backoffice.client,
+    orders_backoffice.cotizated
+FROM orders_backoffice 
+WHERE users_id = '${user.id}'     
+ORDER BY date DESC
+LIMIT ${(page - 1) * 7},7
+`;
+
+    const queryCount =`
+    SELECT COUNT(*) AS total_records
+    FROM orders
+    WHERE users_id = '${user.id}'
+    UNION
+    SELECT COUNT(*) AS total_records    
+    FROM orders_backoffice 
+    WHERE users_id = '${user.id}'
+` 
+
+
+    try {
+        conn.query(ordersQuery, (err, results) => {
+            if (err) {
+                res.status(500).send(
+                    "Error al obtener los datos de las tablas 'orders' y 'orders_records':" +
+                        err
+                );
+                return;
+            }
+
+            const data = results.map((r) => {
+                return {
+                    type: r?.type,
+                    id: r?.id,
+                    date: r?.date,
+                    id_pas: r?.pas_id,
+                    name: `${r?.name} ${r?.last_name}`,
+                    phone_number: r?.phone_number,
+                    email: r?.email,
+                    province: r?.province,
+                    amount: r?.amount,
+                    users_id: r?.users_id,
+                    all_person: r?.all_person ? JSON.parse(r?.all_person) : r?.all_person,
+                    description: r?.description ? JSON.parse(r.description) : r?.description,
+                    client: r?.client ? JSON.parse(r.client) : r?.client,
+                    cotizated: r?.cotizated,
+                    status_payment: r?.status_payment
+                };
+            });
+            conn.query(queryCount, (error, response) => {
+                if (error) res.status(500).send(error);
+                let sumaTotal = 0;
+                for (const resultado of response) {
+                sumaTotal += resultado.total_records;
+                }
+                res.status(200).json({ orders: data, pages: sumaTotal });
+              });
+        });
+    } catch (err) {
+        res.status(500).send(
+            "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
+        );
     }
 };
 
@@ -596,6 +691,7 @@ module.exports = {
     emitNotificationPas,
     getNotificationAdmin,
     getNotificationPas,
+    getNotificationClient,
     deleteNotificationAdmin,
     emitNotificationAdmin,
     getCountNotis,
@@ -603,8 +699,8 @@ module.exports = {
     deleteNotificationPas,
     postCoti,
     postCotiJson,
-    getAllOrders,
     getAllOrdersByPas,
     postOrdersBackoffice,
-    dairySales
+    dairySales,
+    getAllOrdersByUser,
 };

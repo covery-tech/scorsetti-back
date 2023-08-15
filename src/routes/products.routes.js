@@ -1,5 +1,5 @@
 const express = require("express")
-const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, postCoti, postCotiJson, getAllOrders, getAllOrdersByPas, postOrdersBackoffice, dairySales} = require("../controllers/products.controllers");
+const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, getAllOrdersByPas, postOrdersBackoffice, dairySales, getAllOrdersByUser, emitNotificationClient, getNotificationClient} = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
 
 const router = express.Router();
@@ -20,14 +20,12 @@ router
     .put("/deleteNotificationAdmin/:idNoti",deleteNotificationAdmin)
     .put("/deleteNotificationPas/:idNoti",deleteNotificationPas)
     .get("/getNotificationAdmin/:page",getNotificationAdmin)
+    .get("/getNotificationClient/:page",tokenValidation,getNotificationClient)
     .get("/getNotificationPas/:page",tokenValidation,getNotificationPas)
     .post("/emitNotificationAdmin",emitNotificationAdmin)
     .get("/getCountNotis",getCountNotis)
     .get("/getCountNotisPas",tokenValidation,getCountNotisPas)
-    .post("/postCotization",postCoti)
-    .post("/postCotizationJson",postCotiJson)
     .get("/getAllOrdersByPas/:idPas?",getAllOrdersByPas)
-    .get("/getAllOrders",getAllOrders)
+    .get("/getAllOrdersByUser/:page",tokenValidation,getAllOrdersByUser)
     .post("/postOrdersBack", postOrdersBackoffice)
-    
 module.exports = router
