@@ -1,3 +1,4 @@
+const { createConnection } = require("mysql2/promise");
 const conn = require("../config/connection");
 const { postNotificationPas, postNotificationClient } = require("../lib/notification");
 const { validateUserType } = require("../lib/validateUserType");
@@ -48,12 +49,13 @@ const getPassProductsEneable = (req, res) => {
             if (err) res.status(400).send(err);
             else {
                 if (result.length) {
+
                     let data = [
                         result[0].auto === "habilitado" && "auto",
                         result[0].moto === "habilitado" && "moto",
                         result[0].hogar === "habilitado" && "hogar",
                         result[0].avipar === "habilitado" && "avipar",
-                        result[0].acc_personal === "habilitado" && "ap",
+                        result[0].ap === "habilitado" && "ap",
                         result[0].coti_auto_moto === "habilitado" &&
                             "grupomotoauto",
                     ];
@@ -117,7 +119,7 @@ const getPassProductsAll = (req, res) => {
                 },
                 {
                     title: "Accidentes Personales",
-                    status: resp[0]?.acc_personal,
+                    status: resp[0]?.ap,
                     name: "ap",
                 },
                 {
@@ -675,6 +677,29 @@ LIMIT ${(page - 1) * 7},7
     }
 };
 
+const updateCotizatedProduct = (req, res) => {
+    const {id, cotizated} = req.params;
+    const updateQuery = `UPDATE orders_backoffice SET cotizated = "${cotizated==="1"?0:1}"  WHERE orders_backoffice.id = "${id}"`
+
+    try {
+        conn.query(updateQuery, (err, result) => {
+            console.log(updateQuery)
+            if (err) {
+                res.status(500).send(
+                    "Error" +
+                        err
+                );
+                return;
+            }
+            res.status(200).send(true)
+            return
+        }) 
+    }
+    catch (err) {
+        res.status(400).send(err);
+    }
+}
+
 module.exports = {
     getProductCard,
     createInterTableProductUser,
@@ -700,4 +725,5 @@ module.exports = {
     postOrdersBackoffice,
     dairySales,
     getAllOrdersByUser,
+    updateCotizatedProduct
 };

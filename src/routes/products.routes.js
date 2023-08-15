@@ -1,5 +1,5 @@
 const express = require("express")
-const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, getAllOrdersByPas, postOrdersBackoffice, dairySales, getAllOrdersByUser, emitNotificationClient, getNotificationClient} = require("../controllers/products.controllers");
+const {getProductCard, createInterTableProductUser, updateStatusProduct, getPassProductsEneable, getPassProductsAll, getMyProductsSale, numberOfOrders, numberOfClients, amountOfOrders, emitNotificationPas, getNotificationAdmin, deleteNotificationAdmin, emitNotificationAdmin, getCountNotis, getNotificationPas, getCountNotisPas, deleteNotificationPas, getAllOrdersByPas, postOrdersBackoffice, dairySales, getAllOrdersByUser, emitNotificationClient, getNotificationClient, updateCotizatedProduct} = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
 
 const router = express.Router();
@@ -28,4 +28,5 @@ router
     .get("/getAllOrdersByPas/:idPas?",getAllOrdersByPas)
     .get("/getAllOrdersByUser/:page",tokenValidation,getAllOrdersByUser)
     .post("/postOrdersBack", postOrdersBackoffice)
+    .put("/updateCotiStatus/:id/:cotizated", updateCotizatedProduct)
 module.exports = router
