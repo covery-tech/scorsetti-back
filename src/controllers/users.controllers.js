@@ -1,4 +1,4 @@
-const conn = require("../config/connection")
+const {conn} = require("../config/connection")
 const jwt = require("jsonwebtoken");
 const { validateUserType } = require("../lib/validateUserType");
 require('dotenv').config();

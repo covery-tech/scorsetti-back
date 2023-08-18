@@ -1,6 +1,6 @@
 const mercadopago = require("mercadopago");
 const axios = require("axios");
-const conn = require("../config/connection");
+const {conn} = require("../config/connection");
 require("dotenv").config();
 
 const createPlan = (req, res) => {

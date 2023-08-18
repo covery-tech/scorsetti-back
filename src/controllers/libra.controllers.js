@@ -1,5 +1,5 @@
 const axios = require("axios");
-const conn = require("../config/connection");
+const {conn} = require("../config/connection");
 const moment = require("moment-timezone");
 
 const postTokenPas = (req, res) => {

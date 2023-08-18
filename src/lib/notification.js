@@ -1,13 +1,12 @@
-const conn = require("../config/connection");
+const {conn} = require("../config/connection");
 
 const postNotificationPas = (idPas, description, idClient) => {
-    console.log(idPas, description)
-
     const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas ? idPas : null}','${description}','${idClient? idClient : null}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) return err;
             else {
+                console.log("!")
                 return true;
             }
         });
@@ -18,12 +17,12 @@ const postNotificationPas = (idPas, description, idClient) => {
 
 
 const postNotificationClient = (idclient, description) => {
-    console.log(idclient, description)
     const emitNotification = `INSERT INTO notification_client (idClient,description) VALUES ('${idclient}','${description}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) return err;
             else {
+                console.log("!")
                 return true;
             }
         });
@@ -31,6 +30,8 @@ const postNotificationClient = (idclient, description) => {
         return err;
     }
 };
+
+
 module.exports = {
     postNotificationPas,
     postNotificationClient,

@@ -1,4 +1,4 @@
-const conn = require("../config/connection")
+const {conn} = require("../config/connection")
 const axios = require("axios")
 const createForm = (req,res)=>{
     const {form} = req.body
