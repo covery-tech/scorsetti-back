@@ -25,5 +25,5 @@ router
     .get("/getAllOrdersByPas/:idPas?",productController.getAllOrdersByPas)
     .get("/getAllOrdersByUser/:page",tokenValidation,productController.getAllOrdersByUser)
     .post("/postOrdersBack", productController.postOrdersBackoffice)
-    .put("/updateCotiStatus/:id/:cotizated", updateCotizatedProduct)
+    .put("/updateCotiStatus/:id/:cotizated", productController.updateCotizatedProduct)
 module.exports = router

@@ -463,6 +463,21 @@ class ProductModel {
             return err
         }
     }
+    static async updateCotizatedProduct (id, cotizated) {
+        const updateQuery = `UPDATE orders_backoffice SET cotizated = "${
+            cotizated === "1" ? 0 : 1
+        }"  WHERE orders_backoffice.id = "${id}"`;
+    
+        try {
+            const [ResultSetHeader] = await conn2.query(updateQuery);
+            if(ResultSetHeader.affectedRows){
+                return true;
+            }
+            return false
+        } catch (err) {
+            res.status(400).send(err);
+        }
+    }
 }
 
 module.exports = { ProductModel };

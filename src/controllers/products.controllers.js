@@ -123,35 +123,18 @@ class productController {
     static async getAllOrdersByUser (req,res) {
         const user  = req.user
         const pageNumber = parseInt(req.params.page) || 1;
-        const data = await ProductModel.getAllOrdersByUser(4,pageNumber)
+        const data = await ProductModel.getAllOrdersByUser(user.id,pageNumber)
+        res.json(data)
+    }
+    static async updateCotizatedProduct (req,res) {
+        const { id, cotizated } = req.params;
+        const data = await ProductModel.getAllOrdersByUser(id, cotizated)
         res.json(data)
     }
 }
 
-const updateCotizatedProduct = async (req, res) => {
-    const { id, cotizated } = req.params;
-
-    const updateQuery = `UPDATE orders_backoffice SET cotizated = "${
-        cotizated === "1" ? 0 : 1
-    }"  WHERE orders_backoffice.id = "${id}"`;
-
-    try {
-        conn.query(updateQuery, (err, result) => {            
-            if (err) {
-                res.status(500).send("Error" + err);
-                return;
-            }
-            res.status(200).send(true);
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
 module.exports = {
-    productController,
-    updateCotizatedProduct
+    productController
 };
 
 
