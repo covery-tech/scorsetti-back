@@ -4,7 +4,7 @@ const fs = require("fs")
 const helperImg = (filePath,filename,size = 300)=>{
     return sharp(filePath)
         .resize(size)
-        .toFile(`../scorsetti-back/src/optimize/${filename}`)
+        .toFile(`./src/optimize/${filename}`)
 }
 
 

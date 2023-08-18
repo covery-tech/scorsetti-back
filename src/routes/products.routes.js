@@ -1,7 +1,6 @@
 const express = require("express")
-const { productController } = require("../controllers/products.controllers");
+const { productController, updateCotizatedProduct } = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
-
 const router = express.Router();
 
 
@@ -26,4 +25,5 @@ router
     .get("/getAllOrdersByPas/:idPas?",productController.getAllOrdersByPas)
     .get("/getAllOrdersByUser/:page",tokenValidation,productController.getAllOrdersByUser)
     .post("/postOrdersBack", productController.postOrdersBackoffice)
+    .put("/updateCotiStatus/:id/:cotizated", updateCotizatedProduct)
 module.exports = router
