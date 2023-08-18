@@ -1,7 +1,9 @@
 const {conn} = require("../config/connection");
+const crypto = require("node:crypto")
 
 const postNotificationPas = (idPas, description, idClient) => {
-    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas ? idPas : null}','${description}','${idClient? idClient : null}')`;
+    const id = crypto.randomUUID()
+    const emitNotification = `INSERT INTO notification_for_user (id,id_pas,description,id_admin) VALUES ('${id},'${idPas ? idPas : null}','${description}','${idClient? idClient : null}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) return err;
@@ -17,7 +19,8 @@ const postNotificationPas = (idPas, description, idClient) => {
 
 
 const postNotificationClient = (idclient, description) => {
-    const emitNotification = `INSERT INTO notification_client (idClient,description) VALUES ('${idclient}','${description}')`;
+    const id = crypto.randomUUID()
+    const emitNotification = `INSERT INTO notification_client (id,idClient,description) VALUES ('${id},'${idclient}','${description}')`;
     try {
         conn.query(emitNotification, (err, resp) => {
             if (err) return err;

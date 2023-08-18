@@ -1,6 +1,6 @@
 const {conn2} = require("../config/connection");
 const { postNotificationPas, postNotificationClient } = require("../lib/notification");
-
+const crypto = require("node:crypto")
 const reduceArrayWithElementsRepeat = (array) => {
     const miArraySinRepetidos = array.filter(
         (elem, index, self) =>
@@ -143,9 +143,10 @@ class ProductModel {
     }
     static async emitNotificationPas (idPas,description) {
         try{
-            const emitNotification = `INSERT INTO notification (idPas,description) VALUES ('${idPas}','${description}')`;
+            const id = crypto.randomUUID()
+            const emitNotification = `INSERT INTO notification (id,idPas,description) VALUES ('${id}','${idPas}','${description}')`;
             const [ResultSetHeader] = await conn2.query(emitNotification)
-            if(ResultSetHeader.insertId) return true
+            if(ResultSetHeader.affectedRows) return true
             return false
         } catch (err) {
             return err;
@@ -211,9 +212,10 @@ class ProductModel {
     }
     static async emitNotificationAdmin (idPas, description, idAdmin) {
         try {
-            const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas}','${description}','${idAdmin}')`;
+            const id = crypto.randomUUID()
+            const emitNotification = `INSERT INTO notification_for_user (id,id_pas,description,id_admin) VALUES ('${id}','${idPas}','${description}','${idAdmin}')`;
             const [ResultSetHeader] = await conn2.query(emitNotification)
-            if(ResultSetHeader.insertId) return true
+            if(ResultSetHeader.affectedRows) return true
             return false
         } catch (err) {
             return err;
@@ -237,17 +239,18 @@ class ProductModel {
             res.status(400).send(err);
         }
     }
-    static async postCoti (data,id) { //deprecate
+    static async postCoti (data,idPas) { //deprecate
+        const id = crypto.randomUUID()
         const currentDateTime = new Date();
         currentDateTime.setHours(currentDateTime.getHours() - 3);
         const dateTime = currentDateTime
             .toISOString()
             .slice(0, 19)
             .replace("T", " ");
-        const postCotiz = `INSERT INTO orders_records (name, lastname, type, document, phone, province, email, sub_type, price, pas_id, date) VALUES ('${data.name}', '${data.lastname}', '${data.type}', '${data.document}', '${data.phone}', '${data.province}', '${data.email}', '${data?.sub_type}', '${data.price}', '${id}', '${dateTime}')`;
+        const postCotiz = `INSERT INTO orders_records (id,name, lastname, type, document, phone, province, email, sub_type, price, pas_id, date) VALUES ('${id}','${data.name}', '${data.lastname}', '${data.type}', '${data.document}', '${data.phone}', '${data.province}', '${data.email}', '${data?.sub_type}', '${data.price}', '${idPas}', '${dateTime}')`;
         try {
             const [ ResultSetHeader ] = await conn2.query(postCotiz);
-            if(ResultSetHeader.insertId) return true
+            if(ResultSetHeader.affectedRows) return true
             return false
         } catch (err) {
             return err;
@@ -366,13 +369,14 @@ class ProductModel {
     }
     static async postOrdersBackoffice (pas_id,tipo, description, client, users_id) {
         const jsonDescription = JSON.stringify(description);
+        const id = crypto.randomUUID()
         const jsonClient = JSON.stringify(client);
-        const queryBackoffice = `INSERT INTO orders_backoffice (type, description, client, pas_id,users_id) VALUES ('${tipo}', '${jsonDescription}', '${jsonClient}', '${pas_id}','${users_id}')`;
+        const queryBackoffice = `INSERT INTO orders_backoffice (id,type, description, client, pas_id,users_id) VALUES ('${id}','${tipo}', '${jsonDescription}', '${jsonClient}', '${pas_id}','${users_id}')`;
         await postNotificationPas(pas_id,`Posible nuevo cliente, datos de contacto: Email ${client.email} , Tel: ${client.telefono}`,users_id)
         await postNotificationClient(users_id,`En breve un operador se comunicara con usted via email o whatsapp`)
         try {
              const [ResultSetHeader] = await conn2.query(queryBackoffice)
-            if(ResultSetHeader.insertId) return true
+            if(ResultSetHeader.affectedRows) return true
             return false
         } catch (err) {
             return err;

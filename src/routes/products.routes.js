@@ -1,5 +1,5 @@
 const express = require("express")
-const { productController, updateCotizatedProduct } = require("../controllers/products.controllers");
+const { productController } = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
 const router = express.Router();
 

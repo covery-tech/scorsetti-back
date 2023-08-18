@@ -1,5 +1,4 @@
 const { ProductModel } = require("../models/products.models");
-const { conn } = require("../config/connection");
 
 const verifyUser = (user) => (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
 
