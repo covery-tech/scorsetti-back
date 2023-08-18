@@ -1,706 +1,165 @@
-const conn = require("../config/connection");
-const { postNotificationPas, postNotificationClient } = require("../lib/notification");
-const { validateUserType } = require("../lib/validateUserType");
+const { ProductModel } = require("../models/products.models");
 
-const getProductCard = (req, res) => {
-    // const querySelectSQL = "SELECT * FROM `forms`"
-    // try{
-    //     conn.query(querySelectSQL,function(err,result){
-    //         if(err) res.status(400).send(err)
-    //         const info = result?.map(e=>{
-    //             let data = JSON.parse(e.info_form)
-    //             return {
-    //
-    // }                id:e.id,
-    //                 image:data.image,
-    //                 product_title: data.productTitle || data.product_title
-    //             }
-    //         })
-    //         res.status(200).send(info)
-    //     })
-    // }catch(e){
-    //     res.status(400).send(e)
-};
 
-const createInterTableProductUser = (req, res) => {
-    const { idUser, idProduct } = req.body;
-    const data = new Date();
-    const fechaActual = data.toLocaleDateString();
-    const queryIntoNewProduct = `INSERT INTO user_product ( id_user, id_product, create_date ) VALUES (${idUser},${idProduct},"${fechaActual}");`;
-    try {
-        conn.query(queryIntoNewProduct, function (err, result) {
-            if (err) res.status(400).send(err);
-            else {
-                //(result);
-                res.status(200).send(true);
-            }
-        });
-    } catch (e) {
-        res.status(400).send(e);
+const verifyUser = (user) => (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
+
+class productController {
+    static async getPassProductsEneable (req, res) {
+        const { idUser } = req.params;
+        const products = await ProductModel.getProductsEneablePas(idUser)
+        res.status(200).json(products)
+    };
+    static async updateStatusProduct(req, res) {
+        const { status, idPas, column } = req.params;
+        const state = await ProductModel.updateStatusProduct(status, idPas, column)
+        res.status(200).send(state);
     }
-};
-
-const getPassProductsEneable = (req, res) => {
-    const { idUser } = req.params;
-    const querySelectProducts = `SELECT * FROM products_users WHERE users_id = '${idUser}'`;
-    try {
-        conn.query(querySelectProducts, function (err, result) {
-            if (err) res.status(400).send(err);
-            else {
-                if (result.length) {
-                    let data = [
-                        result[0].auto === "habilitado" && "auto",
-                        result[0].moto === "habilitado" && "moto",
-                        result[0].hogar === "habilitado" && "hogar",
-                        result[0].avipar === "habilitado" && "avipar",
-                        result[0].acc_personal === "habilitado" && "ap",
-                        result[0].coti_auto_moto === "habilitado" &&
-                            "grupomotoauto",
-                    ];
-                    data = data.filter((e) => e !== false);
-                    data = {
-                        products: data,
-                        user_id: result[0].users_id,
-                    };
-                    return res.status(200).send(data);
-                } else {
-                    return res.status(200).send("userPas no encontrado");
-                }
-            }
-        });
-    } catch (e) {
-        res.status(400).send(e);
+    static async getPassProductsAll (req, res) {
+        const { idUser } = req.params;
+        const products = await ProductModel.getPassProductsAll(idUser)
+        res.status(200).send(products);
+    };
+    static async getMyProductsSale (req, res) {
+        const { idPas, page } = req.params;
+        const numberPage = parseInt(page);
+        const data = await ProductModel.getMyProductsSale(idPas,numberPage)
+        res.status(200).send(data)
+    };
+    static async numberOfOrders (req, res) {
+        const user = req.user;
+        const userType = verifyUser(user)
+        const data = await ProductModel.numberOfOrders(userType)
+        res.status(200).send(data)  
+    };
+    static async numberOfClients (req, res) {
+        const user = req.user;
+        const userType = verifyUser(user)
+        const data = await ProductModel.numberOfClient(userType)
+        res.send({data})  
+    };
+    static async amountOfOrders (req, res) {
+        const user = req.user;
+        const userType = verifyUser(user)
+        const data = await ProductModel.amountOfOrders(userType)
+        res.send({data})
     }
-};
-
-const updateStatusProduct = (req, res) => {
-    const { status, idPas, column } = req.params;
-    const queryUpdateSQL = `UPDATE products_users SET ${column} = "${status}" WHERE users_id = '${idPas}';`;
-    try {
-        conn.query(queryUpdateSQL, function (err, result) {
-            if (err) res.status(400).send(err);
-            else {
-                res.status(200).send(true);
-            }
-        });
-    } catch (e) {
-        res.status(400).send(e);
+    static async dairySales (req,res) {
+        const user = req.user;
+        const fecha = req.query.fecha;
+        const currentDate = new Date();
+        const year = currentDate.getFullYear();
+        const month = currentDate.getMonth() + 1;
+        const day = currentDate.getDate();
+        const date = fecha ? fecha : `${year}/${month}/${day}`
+        const userType = verifyUser(user)
+        const totalVentas  = await ProductModel.dairySales(date,userType)
+        res.json({ fecha: date, totalVentas });
     }
-};
-
-const getPassProductsAll = (req, res) => {
-    const { idUser } = req.params;
-    const query = `select * from products_users where users_id = '${idUser}'`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) return res.status(500).send("server error");
-            const data = [
-                {
-                    title: "Auto",
-                    status: resp[0]?.auto,
-                    name: "auto",
-                },
-                {
-                    title: "Moto",
-                    status: resp[0]?.moto,
-                    name: "moto",
-                },
-                {
-                    title: "Hogar",
-                    status: resp[0]?.hogar,
-                    name: "hogar",
-                },
-                {
-                    title: "Avipar",
-                    status: resp[0]?.avipar,
-                    name: "avipar",
-                },
-                {
-                    title: "Accidentes Personales",
-                    status: resp[0]?.acc_personal,
-                    name: "ap",
-                },
-                {
-                    title: "Cotización Grupal Motos y Autos",
-                    status: resp[0]?.coti_auto_moto,
-                    name: "coti_auto_moto",
-                },
-            ];
-            return res.status(200).send(data);
-        });
-    } catch (err) {
-        res.status(400).send(err);
+    static async emitNotificationPas (req,res) {
+        const { idPas, description } = req.body;
+        const data = await ProductModel.emitNotificationPas(idPas,description)
+        res.send(data);
     }
-};
-
-const getMyProductsSale = (req, res) => {
-    const { idPas, page } = req.params;
-    const number = parseInt(page);
-    const query = `select orders.*,personal_data.* from orders  join personal_data on orders.users_id = personal_data.id_user where orders.pas_id = '${idPas}' LIMIT ${
-        (number - 1) * 7
-    }, 7;`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send("servier error");
-            res.status(200).send(resp);
-        });
-    } catch (e) {
-        res.status(400).send(e);
+    static async getNotificationAdmin (req,res) {
+        const { page } = req.params;
+        const numberPage = parseInt(page);
+        if(isNaN(numberPage)) return res.send([])
+        const data = await ProductModel.getNotificationAdmin(numberPage)
+        res.json(data);
     }
-};
-
-const numberOfOrders = (req, res) => {
-    const user = req.user;
-    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
-
-    const query = userType ? `select COUNT(*) from orders where pas_id = '${userType}' AND status_payment='authorized'` :`select COUNT(*) from orders where status_payment='authorized'` ;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(resp[0]);
-            }
-        });
-    } catch (err) {
-        res.status(400).send(err);
+    static async getNotificationPas (req,res) {
+        const { page } = req.params;
+        const { user } = req;
+        const numberPage = parseInt(page);
+        if(isNaN(numberPage)) return res.send([])
+        const data = await ProductModel.getNotificationPas(user.id,numberPage)
+        res.send(data)
     }
-};
-
-const reduceArrayWithElementsRepeat = (array) => {
-    const miArraySinRepetidos = array.filter(
-        (elem, index, self) =>
-            index === self.findIndex((e) => e.users_id === elem.users_id)
-    );
-    return miArraySinRepetidos;
-};
-
-const numberOfClients = (req, res) => {
-    const user = req.user;
-    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
-    const query = userType ? `select users_id from orders where pas_id ='${userType}'` : `select users_id from orders`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                let data = reduceArrayWithElementsRepeat(resp);
-                data = data.length;
-                res.status(200).send({ data });
-            }
-        });
-    } catch (err) {
-        res.status(400).send(err);
+    static async getNotificationClient (req,res) {
+        const { page } = req.params;
+        const { user } = req;
+        const numberPage = parseInt(page);
+        if(isNaN(numberPage)) return res.send([])
+        const data = await ProductModel.getNotificationClient(user.id,numberPage)
+        res.send(data);
     }
-};
-
-const amountOfOrders = (req, res) => {
-    const user = req.user;
-    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
-    const query = userType ?  `select amount from orders where pas_id = '${userType}' AND status_payment = 'authorized'` : `select amount from orders where status_payment = 'authorized'`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                const sum = resp.reduce(
-                    (accumulator, currentValue) =>
-                        accumulator + parseInt(currentValue.amount),
-                    0
-                );
-                res.status(200).send({ sum });
-            }
-        });
-    } catch (err) {
-        res.status(400).send(err);
+    static async deleteNotificationAdmin (req,res) {
+        const { idNoti } = req.params;
+        const state = await ProductModel.deleteNotificationAdmin(idNoti)
+        res.send(state);
     }
-};
-
-const dairySales = (req,res)=> {
-    const user = req.user;
-    const fecha = req.params.fecha;
-    const userType = (user.type === "superadmin") ? undefined : (user.type === "admin") ? undefined : user.id;
-  const sqlQuery = userType ? `SELECT SUM(amount) AS total_ventas FROM orders WHERE DATE(date) = '${fecha}' AND pas_id = '${userType}'`:`SELECT SUM(amount) AS total_ventas FROM orders WHERE DATE(date) = '${fecha}'`;
-
-  conn.query(sqlQuery, (err, results) => {
-    if (err) {
-      return res.status(500).json({ error: 'Error interno del servidor' });
+    static async deleteNotificationPas (req,res) {
+        const { idNoti } = req.params;
+        const state = await ProductModel.deleteNotificationPas(idNoti)
+        res.send(state);
     }
-    const totalVentas = results[0]?.total_ventas || 0;
-    res.json({ fecha, totalVentas });
-  });
+    static async emitNotificationAdmin (req,res) {
+        const { idPas, description, idAdmin } = req.body;
+        const state = await ProductModel.emitNotificationAdmin(idPas, description, idAdmin)
+        res.send(state);
+    }
+    static async getCountNotis (req,res) {
+        const data = await ProductModel.getCountNotis()
+        res.send(data);
+    }
+    static async getCountNotisPas (req,res) {
+        const { user } = req;
+        const data = await ProductModel.getCountNotisPas(user.id)
+        res.send(data);
+    }
+    static async getAllOrdersByPas (req,res) {
+        const { idPas } = req.params
+        const numberPage = parseInt(req.query.page) || 1;
+        const data = await ProductModel.getAllOrdersByPas(idPas,numberPage)
+        res.json(data);
+    }
+    static async postOrdersBackoffice (req,res) {
+        const {pas_id} = req.query
+        const { tipo, description, client, users_id } = req.body.values;
+        console.log(pas_id,tipo, description, client, users_id)
+        const data = await ProductModel.postOrdersBackoffice(pas_id,tipo, description, client, users_id)
+        res.json(data);
+    }
+    static async getAllOrdersByUser (req,res) {
+        const user  = req.user
+        const pageNumber = parseInt(req.params.page) || 1;
+        const data = await ProductModel.getAllOrdersByUser(4,pageNumber)
+        res.json(data)
+    }
 }
 
-const emitNotificationPas = (req, res) => {
-    const { idPas, description } = req.body;
-    const emitNotification = `INSERT INTO notification (idPas,description) VALUES ('${idPas}','${description}')`;
-    try {
-        conn.query(emitNotification, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(true);
-            }
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getNotificationAdmin = (req, res) => {
-    const { page } = req.params;
-    const number = parseInt(page);
-    let query = `select notification.*,users.img,personal_data.name,personal_data.last_name,personal_data.email,personal_data.phone_number
-   from notification JOIN users JOIN personal_data ON notification.idPas = users.id AND notification.idPas = personal_data.id_user AND notification.enable = 1 LIMIT ${
-       (number - 1) * 7
-   }, 7;`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else res.status(200).send(resp);
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getNotificationPas = (req, res) => {
-    const { page } = req.params;
-    const { user } = req;
-    const number = parseInt(page);
-    let query = `select notification_for_user.*,users.img,personal_data.name,personal_data.last_name,personal_data.email,personal_data.phone_number
-
-      from notification_for_user JOIN users JOIN personal_data ON notification_for_user.id_pas = users.id AND notification_for_user.id_pas = personal_data.id_user AND notification_for_user.enable = 1 where id_pas = ${
-          user.id
-      } LIMIT ${(number - 1) * 7}, 7;`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else res.status(200).send(resp);
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getNotificationClient = (req, res) => {
-    const { page } = req.params;
-    const { user } = req;
-    const number = parseInt(page);
-    let query = `select * from notification_client where enable = '1' and idClient = '${user.id}' LIMIT ${(number - 1) * 7}, 7;`;
-    try {
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else res.status(200).send(resp);
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const deleteNotificationAdmin = (req, res) => {
-    const { idNoti } = req.params;
-    const queryUpdate = `UPDATE notification set enable = "0" where id = '${idNoti}'`;
-    try {
-        conn.query(queryUpdate, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else res.status(200).send(true);
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const deleteNotificationPas = (req, res) => {
-    const { idNoti } = req.params;
-
-    const queryUpdate = `UPDATE notification_for_user set enable = "0" where id = '${idNoti}'`;
-    try {
-        conn.query(queryUpdate, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else res.status(200).send(true);
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const emitNotificationAdmin = (req, res) => {
-    const { idPas, description, idAdmin } = req.body;
-    const emitNotification = `INSERT INTO notification_for_user (id_pas,description,id_admin) VALUES ('${idPas}','${description}','${idAdmin}')`;
-    try {
-        conn.query(emitNotification, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(true);
-            }
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getCountNotis = (req, res) => {
-    try {
-        const query = `select COUNT(*) from notification where enable='1'`;
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(resp);
-            }
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getCountNotisPas = (req, res) => {
-    const { user } = req;
-    try {
-        const query = `select COUNT(*) from notification_for_user where enable='1' AND id_pas = ${user.id}`;
-        conn.query(query, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(resp);
-            }
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const postCoti = (req, res) => {
-    const { idPas, data, idAdmin } = req.body;
-    let id;
-    if (idPas) {
-        id = idPas;
-    } else if (idAdmin) {
-        id = idAdmin;
-    }
-    const currentDateTime = new Date();
-    currentDateTime.setHours(currentDateTime.getHours() - 3);
-    const dateTime = currentDateTime
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
-    const postCotiz = `INSERT INTO orders_records (name, lastname, type, document, phone, province, email, sub_type, price, pas_id, date) VALUES ('${data.name}', '${data.lastname}', '${data.type}', '${data.document}', '${data.phone}', '${data.province}', '${data.email}', '${data?.sub_type}', '${data.price}', '${id}', '${dateTime}')`;
-    try {
-        conn.query(postCotiz, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(true);
-            }
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const postCotiJson = (req, res) => {
-    const { idPas, data, idAdmin, jsonData } = req.body;
-    let id;
-    if (idPas) {
-        id = idPas;
-    } else if (idAdmin) {
-        id = idAdmin;
-    }
-    const currentDateTime = new Date();
-    currentDateTime.setHours(currentDateTime.getHours() - 3);
-    const dateTime = currentDateTime
-        .toISOString()
-        .slice(0, 19)
-        .replace("T", " ");
-    jsonData1 = JSON.stringify(jsonData);
-    const postCotiz = `INSERT INTO orders_records (name, lastname, type, document, phone, province, email, sub_type, price, pas_id, date, all_person) VALUES ('${data.name}', '${data.lastname}', '${data.type}', '${data.document}', '${data.phone}', '${data.province}', '${data.email}', '${data?.sub_type}', '${data.price}', '${id}', '${dateTime}', '${jsonData1}')`;
-    try {
-        conn.query(postCotiz, (err, resp) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(true);
-            }
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-
-const getAllOrdersByPas = (req, res) => {
-    const { idPas } = req.params
-    const page = parseInt(req.query.page) || 1;
-    const ordersQuery = idPas ? `
-    SELECT orders.type,
-    orders.id,
-    orders.date, 
-    orders.users_id, 
-    orders.amount, 
-    orders.status_payment,
-    orders.pas_id, 
-    orders.name, 
-    orders.last_name, 
-    orders.phone_number, 
-    orders.email, 
-    NULL AS sub_type,
-    NULL AS province,
-    orders.all_person, 
-    NULL AS description, 
-    NULL AS client, 
-    NULL AS cotizated
-FROM orders
-WHERE pas_id = '${idPas}'
-UNION
-SELECT orders_backoffice.type,
-    orders_backoffice.id, 
-    orders_backoffice.date, 
-    orders_backoffice.users_id, 
-    orders_backoffice.pas_id,
-    NULL AS amount, 
-    NULL AS status_payment,   
-    NULL AS name, 
-    NULL AS last_name, 
-    NULL AS phone_number, 
-    NULL AS email, 
-    NULL AS sub_type, 
-    NULL AS province, 
-    NULL AS all_person, 
-    orders_backoffice.description,
-    orders_backoffice.client,
-    orders_backoffice.cotizated
-FROM orders_backoffice 
-WHERE pas_id = '${idPas}'     
-ORDER BY date DESC
-LIMIT ${(page - 1) * 7},7
-` : 
-      `SELECT orders.type,
-        orders.id,
-        orders.date, 
-        orders.users_id, 
-        orders.amount, 
-        orders.status_payment,
-        orders.pas_id, 
-        orders.name, 
-        orders.last_name, 
-        orders.phone_number, 
-        orders.email, 
-        NULL AS sub_type,
-        NULL AS province,
-        orders.all_person, 
-        NULL AS description, 
-        NULL AS client, 
-        NULL AS cotizated FROM orders UNION ALL SELECT orders_backoffice.type,orders_backoffice.id, orders_backoffice.date, orders_backoffice.users_id, orders_backoffice.pas_id,NULL AS amount, NULL AS status_payment, NULL AS name, NULL AS last_name, NULL AS phone_number, NULL AS email, NULL AS sub_type, NULL AS province, NULL AS all_person, orders_backoffice.description, orders_backoffice.client, orders_backoffice.cotizated
-      FROM orders_backoffice     
-      ORDER BY date DESC
-      LIMIT ${(page - 1) * 7},7`;
-
-    const queryCount =idPas ? `
-    SELECT COUNT(*) AS total_records
-    FROM orders
-    WHERE pas_id = '${idPas}'
-    UNION
-    SELECT COUNT(*) AS total_records    
-    FROM orders_backoffice 
-    WHERE pas_id = '${idPas}'
-` : `
-SELECT COUNT(*) AS total_records
-    FROM orders
-    UNION
-    SELECT COUNT(*) AS total_records    
-    FROM orders_backoffice 
-`
-
-
-    try {
-        conn.query(ordersQuery, (err, results) => {
-            if (err) {
-                res.status(500).send(
-                    "Error al obtener los datos de las tablas 'orders' y 'orders_records':" +
-                        err
-                );
-                return;
-            }
-
-            const data = results.map((r) => {
-                return {
-                    type: r?.type,
-                    id: r?.id,
-                    date: r?.date,
-                    id_pas: r?.pas_id,
-                    name: `${r?.name} ${r?.last_name}`,
-                    phone_number: r?.phone_number,
-                    email: r?.email,
-                    province: r?.province,
-                    amount: r?.amount,
-                    users_id: r?.users_id,
-                    all_person: r?.all_person ? JSON.parse(r?.all_person) : r?.all_person,
-                    description: r?.description ? JSON.parse(r.description) : r?.description,
-                    client: r?.client ? JSON.parse(r.client) : r?.client,
-                    cotizated: r?.cotizated,
-                    status_payment: r?.status_payment
-                };
-            });
-            conn.query(queryCount, (error, response) => {
-                if (error) res.status(500).send(error);
-                let sumaTotal = 0;
-                for (const resultado of response) {
-                sumaTotal += resultado.total_records;
-                }
-                res.status(200).json({ orders: data, pages: sumaTotal });
-              });
-        });
-    } catch (err) {
-        res.status(500).send(
-            "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
-        );
-    }
-};
-
-const postOrdersBackoffice = async (req, res) => {
-    const {pas_id} = req.query
-    const { tipo, description, client, users_id } = req.body.values;
-    const jsonDescription = JSON.stringify(description);
-    await postNotificationPas(pas_id,`Posible nuevo cliente, datos de contacto: Email ${client.email} , Tel: ${client.telefono}`,users_id)
-    await postNotificationClient(users_id,`En breve un operador se comunicara con usted via email o whatsapp`)
-    const jsonClient = JSON.stringify(client);
-    const queryBackoffice = `INSERT INTO orders_backoffice (type, description, client, pas_id,users_id) VALUES ('${tipo}', '${jsonDescription}', '${jsonClient}', '${pas_id}','${users_id}')`;
-    try {
-        conn.query(queryBackoffice, (err, results) => {
-            if (err) res.status(500).send(err);
-            else {
-                res.status(200).send(true);
-            }
-            return;
-        });
-    } catch (err) {
-        res.status(400).send(err);
-    }
-};
-
-const getAllOrdersByUser = (req, res) => {
-    const user  = req.user
-    const page = parseInt(req.query.page) || 1;
-    const ordersQuery =`
-    SELECT orders.type,
-    orders.id,
-    orders.date, 
-    orders.users_id, 
-    orders.amount, 
-    orders.status_payment,
-    orders.pas_id, 
-    orders.name, 
-    orders.last_name, 
-    orders.phone_number, 
-    orders.email, 
-    NULL AS sub_type,
-    NULL AS province,
-    orders.all_person, 
-    NULL AS description, 
-    NULL AS client, 
-    NULL AS cotizated
-FROM orders
-WHERE users_id = '${user.id}'
-UNION
-SELECT orders_backoffice.type,
-    orders_backoffice.id, 
-    orders_backoffice.date, 
-    orders_backoffice.users_id, 
-    orders_backoffice.pas_id,
-    NULL AS amount, 
-    NULL AS status_payment,   
-    NULL AS name, 
-    NULL AS last_name, 
-    NULL AS phone_number, 
-    NULL AS email, 
-    NULL AS sub_type, 
-    NULL AS province, 
-    NULL AS all_person, 
-    orders_backoffice.description,
-    orders_backoffice.client,
-    orders_backoffice.cotizated
-FROM orders_backoffice 
-WHERE users_id = '${user.id}'     
-ORDER BY date DESC
-LIMIT ${(page - 1) * 7},7
-`;
-
-    const queryCount =`
-    SELECT COUNT(*) AS total_records
-    FROM orders
-    WHERE users_id = '${user.id}'
-    UNION
-    SELECT COUNT(*) AS total_records    
-    FROM orders_backoffice 
-    WHERE users_id = '${user.id}'
-` 
-
-
-    try {
-        conn.query(ordersQuery, (err, results) => {
-            if (err) {
-                res.status(500).send(
-                    "Error al obtener los datos de las tablas 'orders' y 'orders_records':" +
-                        err
-                );
-                return;
-            }
-
-            const data = results.map((r) => {
-                return {
-                    type: r?.type,
-                    id: r?.id,
-                    date: r?.date,
-                    id_pas: r?.pas_id,
-                    name: `${r?.name} ${r?.last_name}`,
-                    phone_number: r?.phone_number,
-                    email: r?.email,
-                    province: r?.province,
-                    amount: r?.amount,
-                    users_id: r?.users_id,
-                    all_person: r?.all_person ? JSON.parse(r?.all_person) : r?.all_person,
-                    description: r?.description ? JSON.parse(r.description) : r?.description,
-                    client: r?.client ? JSON.parse(r.client) : r?.client,
-                    cotizated: r?.cotizated,
-                    status_payment: r?.status_payment
-                };
-            });
-            conn.query(queryCount, (error, response) => {
-                if (error) res.status(500).send(error);
-                let sumaTotal = 0;
-                for (const resultado of response) {
-                sumaTotal += resultado.total_records;
-                }
-                res.status(200).json({ orders: data, pages: sumaTotal });
-              });
-        });
-    } catch (err) {
-        res.status(500).send(
-            "Error al obtener los datos de las tablas 'orders' y 'orders_records'"
-        );
-    }
-};
 
 module.exports = {
-    getProductCard,
-    createInterTableProductUser,
-    getPassProductsEneable,
-    updateStatusProduct,
-    getPassProductsAll,
-    getMyProductsSale,
-    numberOfOrders,
-    numberOfClients,
-    amountOfOrders,
-    emitNotificationPas,
-    getNotificationAdmin,
-    getNotificationPas,
-    getNotificationClient,
-    deleteNotificationAdmin,
-    emitNotificationAdmin,
-    getCountNotis,
-    getCountNotisPas,
-    deleteNotificationPas,
-    postCoti,
-    postCotiJson,
-    getAllOrdersByPas,
-    postOrdersBackoffice,
-    dairySales,
-    getAllOrdersByUser,
+    productController
 };
+
+
+
+// const postCotiJson = (req, res) => {
+//     const { idPas, data, idAdmin, jsonData } = req.body;
+//     let id;
+//     if (idPas) {
+//         id = idPas;
+//     } else if (idAdmin) {
+//         id = idAdmin;
+//     }
+//     const currentDateTime = new Date();
+//     currentDateTime.setHours(currentDateTime.getHours() - 3);
+//     const dateTime = currentDateTime
+//         .toISOString()
+//         .slice(0, 19)
+//         .replace("T", " ");
+//     jsonData1 = JSON.stringify(jsonData);
+//     const postCotiz = `INSERT INTO orders_records (name, lastname, type, document, phone, province, email, sub_type, price, pas_id, date, all_person) VALUES ('${data.name}', '${data.lastname}', '${data.type}', '${data.document}', '${data.phone}', '${data.province}', '${data.email}', '${data?.sub_type}', '${data.price}', '${id}', '${dateTime}', '${jsonData1}')`;
+//     try {
+//         conn.query(postCotiz, (err, resp) => {
+//             if (err) res.status(500).send(err);
+//             else {
+//                 res.status(200).send(true);
+//             }
+//             return;
+//         });
+//     } catch (err) {
+//         res.status(400).send(err);
+//     }
+// };

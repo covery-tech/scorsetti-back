@@ -1,4 +1,4 @@
-const conn = require("../config/connection")
+const {conn} = require("../config/connection")
 const sharp = require("sharp")
 const fs = require("fs")
 const helperImg = (filePath,filename,size = 300)=>{

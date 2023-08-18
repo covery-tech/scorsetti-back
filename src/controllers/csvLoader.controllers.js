@@ -1,4 +1,4 @@
-const conn = require("../config/connection");
+const {conn} = require("../config/connection");
 const fs = require('fs');
 const csv = require('csv-parser');
 const axios = require('axios');

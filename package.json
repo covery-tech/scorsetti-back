@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "dev": "nodemon src/index"
+    "start": "nodemon src/index"
   },
   "keywords": [],
   "author": "covery",
@@ -29,7 +29,7 @@
     "morgan": "^1.10.0",
     "multer": "^1.4.5-lts.1",
     "mysql": "^2.18.1",
-    "mysql2": "^3.5.1",
+    "mysql2": "^3.6.0",
     "nodemailer": "^6.9.3",
     "sharp": "^0.31.3",
     "ssh2": "^1.11.0",
