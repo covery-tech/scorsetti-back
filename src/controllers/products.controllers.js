@@ -114,7 +114,7 @@ class productController {
         res.json(data);
     }
     static async postOrdersBackoffice (req,res) {
-        const {pas_id} = req.query
+        const {pas_id} = req.params
         const { tipo, description, client, users_id } = req.body.values;
         console.log(pas_id,tipo, description, client, users_id)
         const data = await ProductModel.postOrdersBackoffice(pas_id,tipo, description, client, users_id)
