@@ -167,9 +167,9 @@ class ProductModel {
     static async getNotificationPas (idUser,numberPage) {
         let query = `select notification_for_user.*,users.img,personal_data.name,personal_data.last_name,personal_data.email,personal_data.phone_number
 
-      from notification_for_user JOIN users JOIN personal_data ON notification_for_user.id_pas = users.id AND notification_for_user.id_pas = personal_data.id_user AND notification_for_user.enable = 1 where id_pas = ${
+      from notification_for_user JOIN users JOIN personal_data ON notification_for_user.id_pas = users.id AND notification_for_user.id_pas = personal_data.id_user AND notification_for_user.enable = 1 where id_pas = '${
         idUser
-      } LIMIT ${(numberPage - 1) * 7}, 7;`;
+      }' LIMIT ${(numberPage - 1) * 7}, 7;`;
       try {
         const [ rows ] = await conn2.query(query);
         return rows
@@ -227,16 +227,16 @@ class ProductModel {
             const [ rows ] = await conn2.query(query);
             return rows
         } catch (err) {
-            res.status(400).send(err);
+            return err
         }
     }
     static async getCountNotisPas (userId) {
         try {
-            const query = `select COUNT(*) from notification_for_user where enable='1' AND id_pas = ${userId}`;
+            const query = `select COUNT(*) from notification_for_user where enable='1' AND id_pas = '${userId}'`;
             const [ rows ] = await conn2.query(query);
             return rows
         } catch (err) {
-            res.status(400).send(err);
+            return err
         }
     }
     static async postCoti (data,idPas) { //deprecate
@@ -479,7 +479,7 @@ class ProductModel {
             }
             return false
         } catch (err) {
-            res.status(400).send(err);
+            return err
         }
     }
 }

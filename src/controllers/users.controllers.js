@@ -1,5 +1,3 @@
-const {conn} = require("../config/connection")
-const jwt = require("jsonwebtoken");
 const { validateUserType } = require("../lib/validateUserType");
 const { UserModels } = require("../models/users.models");
 require('dotenv').config();

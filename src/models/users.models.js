@@ -134,7 +134,7 @@ class UserModels {
         const querySearchRegister = `SELECT * FROM products_users WHERE users_id='${idUser}';` 
         try{
             if( !validate ){
-                res.status(403).send("Access Denied")
+                return "Access Denied";
             }
             else{
                 let [ResultSetHeader] = await conn2.query(queryUpdateSQL)
@@ -156,7 +156,7 @@ class UserModels {
                 } else return false
         }
         }catch(e){
-            res.status(400).send(e)
+            return e
         }
     }
     static async getPasUser (numberPage) {
