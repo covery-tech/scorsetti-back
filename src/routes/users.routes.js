@@ -1,25 +1,24 @@
 const express = require("express");
-const { prueba1 } = require("../controllers/products.controllers");
-const {register, postLogin, getUserById, updateTypeUser,getImageLarge, getPasUser, getStatusPas, searchUserByEmail, getPasById, getImage, myPersonalData, updateUserInfo, getClientsOfPas, getAllUsers, getAllRoutes} = require("../controllers/users.controllers")
+const { UserController } = require("../controllers/users.controllers")
 const {tokenValidation} = require("../lib/validateToken") 
 const router = express.Router();
 
 
 
 router
-    .post("/postUser",register)
-    .post("/loginUser",postLogin)
-    .get("/getUserById/:idUser",getUserById) 
-    .get("/getPasById/:idUser",getPasById)//para renderizar pagina de cada pas
-    .put("/updateUser/:type/:idUser",tokenValidation,updateTypeUser)
-    .get("/getPasUser/:page",getPasUser)
-    .put("/estatusPas/:estatus/:idUser",tokenValidation,getStatusPas)
-    .get("/searchUserByEmail/:email",tokenValidation,searchUserByEmail)
-    .get("/image",tokenValidation,getImage)
-    .get("/imageLg/:userId",getImageLarge)
-    .get("/myPersonalData",tokenValidation,myPersonalData)
-    .put("/updateUserInfo",tokenValidation,updateUserInfo)
-    .get("/getClientsOfPas/:idPas",tokenValidation,getClientsOfPas)
-    .get("/getAllUsers/:page",tokenValidation,getAllUsers)
-    .get("/pasRoutes/:id", getAllRoutes)
+    .post("/postUser",UserController.register)
+    .post("/loginUser",UserController.postLogin)
+    .get("/getUserById/:idUser",UserController.getUserById) 
+    .get("/getPasById/:idUser",UserController.getPasById)//para renderizar pagina de cada pas
+    .put("/updateUser/:type/:idUser",tokenValidation,UserController.updateTypeUser)
+    .get("/getPasUser/:page",UserController.getPasUser)
+    .put("/estatusPas/:estatus/:idUser",tokenValidation,UserController.getStatusPas)
+    .get("/searchUserByEmail/:email",tokenValidation,UserController.searchUserByEmail)
+    .get("/image",tokenValidation,UserController.getImage)
+    .get("/imageLg/:userId",UserController.getImageLarge)
+    .get("/myPersonalData",tokenValidation,UserController.myPersonalData)
+    .put("/updateUserInfo",tokenValidation,UserController.updateUserInfo)
+    .get("/getClientsOfPas/:idPas",tokenValidation,UserController.getClientsOfPas)
+    .get("/getAllUsers/:page",tokenValidation,UserController.getAllUsers)
+    .get("/pasRoutes/:id", UserController.getAllRoutes)
 module.exports = router
