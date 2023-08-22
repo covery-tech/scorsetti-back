@@ -112,11 +112,11 @@ class productController {
         const data = await ProductModel.getAllOrdersByPas(idPas,numberPage)
         res.json(data);
     }
-    static async postOrdersBackoffice (req,res) {
-        const {pas_id} = req.params
+    static async postOrdersBackoffice (req,res) {        
+        const {idPas} = req.params
         const { tipo, description, client, users_id } = req.body.values;
-        console.log(pas_id,tipo, description, client, users_id)
-        const data = await ProductModel.postOrdersBackoffice(pas_id,tipo, description, client, users_id)
+        console.log(idPas, tipo, description, client, users_id)
+        const data = await ProductModel.postOrdersBackoffice(idPas,tipo, description, client, users_id)
         res.json(data);
     }
     static async getAllOrdersByUser (req,res) {
@@ -127,7 +127,7 @@ class productController {
     }
     static async updateCotizatedProduct (req,res) {
         const { id, cotizated } = req.params;
-        const data = await ProductModel.getAllOrdersByUser(id, cotizated)
+        const data = await ProductModel.updateCotizatedProduct(id, cotizated)
         res.json(data)
     }
 }

@@ -367,12 +367,12 @@ class ProductModel {
         return err
     }
     }
-    static async postOrdersBackoffice (pas_id,tipo, description, client, users_id) {
+    static async postOrdersBackoffice (idPas,tipo, description, client, users_id) {
         const jsonDescription = JSON.stringify(description);
         const id = crypto.randomUUID()
         const jsonClient = JSON.stringify(client);
-        const queryBackoffice = `INSERT INTO orders_backoffice (id,type, description, client, pas_id,users_id) VALUES ('${id}','${tipo}', '${jsonDescription}', '${jsonClient}', '${pas_id}','${users_id}')`;
-        await postNotificationPas(pas_id,`Posible nuevo cliente, datos de contacto: Email ${client.email} , Tel: ${client.telefono}`,users_id)
+        const queryBackoffice = `INSERT INTO orders_backoffice (id,type, description, client, pas_id,users_id) VALUES ('${id}','${tipo}', '${jsonDescription}', '${jsonClient}', '${idPas}','${users_id}')`;
+        await postNotificationPas(id,`Posible nuevo cliente, datos de contacto: Email ${client.email} , Tel: ${client.telefono}`,users_id)
         await postNotificationClient(users_id,`En breve un operador se comunicara con usted via email o whatsapp`)
         try {
              const [ResultSetHeader] = await conn2.query(queryBackoffice)
