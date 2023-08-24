@@ -57,7 +57,6 @@ class UserModels {
                 type
             }
             const token = jwt.sign(userForToken, process.env.SECRETTOKEN)
-            console.log(token)
             return {
                 result:data,
                 token
@@ -69,13 +68,11 @@ class UserModels {
     }
     static async getImage (userId) {
         const [rows] = await conn2.query(`select img from users where id = '${userId}'`)
-        console.log(rows)
         return rows[0].img;
     }
     static async getImageLarge (userId) {
         try{
         const [rows] = await conn2.query(`select img from users where id = '${userId}'`)
-        console.log(rows[0].img)
         if(rows[0] && rows[0].img) {
             const image = `/large-${rows[0].img.split("-")[1]}`
             return image
@@ -90,21 +87,20 @@ class UserModels {
         try{
             const querySearchId = `SELECT * FROM users WHERE id = '${idUser}'`
             const [rows] = await conn2.query(querySearchId)
-            console.log(rows)
             return rows
         }catch(e){
             return [];
         }
     }
-    static async getPasById (idUser) {
+    static async getPasById (route) {
         try{
-            const queryTypePas = `SELECT * from type_user where id_user = '${idUser}'`
-            const querySearchId = `SELECT location.*, personal_data.*,type_user.type, users.img ,users.description, type_user.status_pas FROM users join personal_data JOIN type_user JOIN location ON location.users_id = personal_data.id_user AND users.id = personal_data.id_user AND personal_data.id_user=type_user.id_user WHERE location.users_id = '${idUser}'`
+            const queryTypePas = `SELECT * from personal_data where route = '${route}'`
             const [rows] = await conn2.query(queryTypePas)
-            if(!rows.length) return "User not found";
-            if(rows[0].type !== "pas") "This user is not pas";
+            if(!rows.length) return 201;
+            const querySearchId = `SELECT location.*, personal_data.*,type_user.type, users.img ,users.description, type_user.status_pas FROM users join personal_data JOIN type_user JOIN location ON location.users_id = personal_data.id_user AND users.id = personal_data.id_user AND personal_data.id_user=type_user.id_user WHERE location.users_id = '${rows[0]?.id_user}'`
             const data =await conn2.query(querySearchId)
             const result = data[0][0]
+            if(result.type !== "pas" || !result.status_pas) return 202;
             const coords = JSON.parse(result?.coords)
             const pas = {
                 calle:result.street_name,
@@ -117,11 +113,12 @@ class UserModels {
                 phone_number:result.phone_number,
                 postal_code:result.postal_code,
                 type:result.type,
-                id:result.id,
+                id:result.id_user,
                 name:result.name,
                 last_name:result.last_name,
                 location:result.city,
-                description:result.description
+                description:result.description,
+                route:rows[0].route
             };
             return pas
         }catch(e){
@@ -138,17 +135,13 @@ class UserModels {
             }
             else{
                 let [ResultSetHeader] = await conn2.query(queryUpdateSQL)
-                console.log("before",ResultSetHeader)
                 if(ResultSetHeader.affectedRows){
                     const [rows] = await conn2.query(querySearchRegister)
-                    console.log("rows",rows)
-                    console.log("id",id)
                     if(!rows.length){
                         let [ResultSetHeader] = await conn2.query(`INSERT INTO 
                                 products_users 
                                 (id,users_id) 
                                 VALUES ('${id}','${idUser}')`)
-                        console.log("after",ResultSetHeader)
                         if(ResultSetHeader.affectedRows) return true
                         else return false
                     }
