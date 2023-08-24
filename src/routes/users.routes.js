@@ -9,7 +9,7 @@ router
     .post("/postUser",UserController.register)
     .post("/loginUser",UserController.postLogin)
     .get("/getUserById/:idUser",UserController.getUserById) 
-    .get("/getPasById/:idUser",UserController.getPasById)//para renderizar pagina de cada pas
+    .get("/getPasByRoute/:route",UserController.getPasById)//para renderizar pagina de cada pas
     .put("/updateUser/:type/:idUser",tokenValidation,UserController.updateTypeUser)
     .get("/getPasUser/:page",UserController.getPasUser)
     .put("/estatusPas/:estatus/:idUser",tokenValidation,UserController.getStatusPas)
