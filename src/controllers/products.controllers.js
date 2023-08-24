@@ -82,14 +82,9 @@ class productController {
         const data = await ProductModel.getNotificationClient(user.id,numberPage)
         res.send(data);
     }
-    static async deleteNotificationAdmin (req,res) {
-        const { idNoti } = req.params;
-        const state = await ProductModel.deleteNotificationAdmin(idNoti)
-        res.send(state);
-    }
-    static async deleteNotificationPas (req,res) {
-        const { idNoti } = req.params;
-        const state = await ProductModel.deleteNotificationPas(idNoti)
+    static async deleteNotification (req,res) {
+        const { idNoti, table} = req.params;
+        const state = await ProductModel.deleteNotification(idNoti,table)
         res.send(state);
     }
     static async emitNotificationAdmin (req,res) {

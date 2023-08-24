@@ -201,21 +201,9 @@ class ProductModel {
             return err;
         }
     }
-    static async deleteNotificationAdmin(idNoti) {
+    static async deleteNotification(idNoti, table) {
         try {
-            const queryUpdate = `UPDATE notification set enable = "0" where id = '${idNoti}'`;
-            const [ResultSetHeader] = await conn2.query(queryUpdate);
-            if (ResultSetHeader.affectedRows) {
-                return true;
-            }
-            return false;
-        } catch (err) {
-            return err;
-        }
-    }
-    static async deleteNotificationPas(idNoti) {
-        try {
-            const queryUpdate = `UPDATE notification_for_user set enable = "0" where id = '${idNoti}'`;
+            const queryUpdate = `UPDATE ${table} set enable = "0" where id = '${idNoti}'`;
             const [ResultSetHeader] = await conn2.query(queryUpdate);
             if (ResultSetHeader.affectedRows) {
                 return true;
