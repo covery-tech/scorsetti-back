@@ -1,6 +1,7 @@
 const crypto = require("node:crypto")
 const {conn2} = require("../config/connection");
 const jwt = require("jsonwebtoken");
+const { warn } = require("node:console");
 require('dotenv').config();
 
 class UserModels {
@@ -198,7 +199,7 @@ class UserModels {
     }
     }
     static async myPersonalData (userId,type) {
-        const location = `select location.* , personal_data.password, users.img,users.description, personal_data.phone_number from location join personal_data join users where location.users_id ='${userId}' AND personal_data.id_user='${userId}' AND users.id ='${userId}'`
+        const location = `select location.* , personal_data.password, users.img,users.description, personal_data.phone_number, personal_data.route from location join personal_data join users where location.users_id ='${userId}' AND personal_data.id_user='${userId}' AND users.id ='${userId}'`
     try {
         let [rows] = await conn2.query(location)
         let coords;
@@ -213,15 +214,17 @@ class UserModels {
             province:rows[0].province,
             street_name:rows[0].street_name,
             description:rows[0].description,
+            route:rows[0].route,
             type:type,
         }
+        console.warn(data);
         return data
     } 
     catch (e) {
         return e;
     }
     }
-    static async updateUserInfo (users,user) {
+    static async updateUserInfo (users,user) {        
     const upadatePersonalData = `UPDATE personal_data SET phone_number = "${users.phone_number || ""}" WHERE id_user = '${user.id}'`
     let coord = users.coords.split(",")
     coord = {
@@ -229,17 +232,29 @@ class UserModels {
         lat:coord[1]
     }
     coord = JSON.stringify(coord) 
-    const updateRoute = `UPDATE personal_data SET route = '${users.route}' WHERE id = '${user.id}'`;
+    const routeExistsQuery = `SELECT 1 FROM personal_data WHERE route = ? AND id_user != ? LIMIT 1`;
+    const updateRoute = `UPDATE personal_data SET route = '${users.route || ""}' WHERE id_user = '${user.id}'`;
     const updateCoords = `UPDATE location SET coords = '${coord || ""}' , street_name = "${users.street_name || ""}" , city = "${users.city || ""}" , province = "${users.province || ""}", postal_code = "${users.postal_code || ""}" WHERE users_id = '${user.id}';`
     const updateUser = `UPDATE users SET description = '${users.description}' where id = '${user.id}'`
+    
     try{
+        const [existingRoute] = await conn2.query(routeExistsQuery, [
+            users.route,
+            user.id,
+        ]);
+
+        if (existingRoute.length > 0) {
+            const errorMessage = "Ya existe otro usuario con la misma ruta.";
+            return false;
+        } else {
         await conn2.query(upadatePersonalData)
         await conn2.query(updateCoords)
         await conn2.query(updateRoute)
         await conn2.query(updateUser)
-        return true
+        return true;
+        }
     }catch(e){
-        return e
+        return false;
     }
     }
     static async getClientsOfPas (idPas) {
