@@ -100,6 +100,11 @@ class UserController {
         const result = await UserModels.getAllRoutes(req.params.id);
         res.status(200).send(result);
     }
+    static async getPasInfo (req, res) {
+        const {idPas} = req.params;
+        const data = await UserModels.getPasInfo(idPas);
+        res.json(data)        
+    }
 }
 
 module.exports = {
