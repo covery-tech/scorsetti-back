@@ -275,6 +275,15 @@ class UserModels {
             return error;
         }
     }
+    static async getPasInfo (idPas) {
+        const getPasInfo = `SELECT name, last_name, phone_number, email, route FROM personal_data WHERE id_user = '${idPas}'`
+        try{
+            const [rows] = await conn2.query(getPasInfo)
+            return rows
+        } catch (error) {
+            return error
+        }
+    }
 }
 
 module.exports = {UserModels}

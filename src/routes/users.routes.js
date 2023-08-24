@@ -21,4 +21,5 @@ router
     .get("/getClientsOfPas/:idPas",tokenValidation,UserController.getClientsOfPas)
     .get("/getAllUsers/:page",tokenValidation,UserController.getAllUsers)
     .get("/pasRoutes/:id", UserController.getAllRoutes)
+    .get("/getPasInfo/:idPas", UserController.getPasInfo)
 module.exports = router
