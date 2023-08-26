@@ -41,9 +41,14 @@ class UserController {
         const img = await UserModels.getUserById(idUser);
         res.status(200).send(img);
     }
-    static async getPasById (req,res) {
+    static async getPasByRoute (req,res) {
         const {route} = req.params
-        const pas = await UserModels.getPasById(route);
+        const pas = await UserModels.getPasByRoute(route);
+        res.status(200).send(pas)
+    }
+    static async getPasById (req,res) {
+        const {id} = req.params
+        const pas = await UserModels.getPasById(id);
         res.status(200).send(pas)
     }
     static async updateTypeUser(req, res) {

@@ -93,9 +93,42 @@ class UserModels {
             return [];
         }
     }
-    static async getPasById (route) {
+    static async getPasByRoute (route) {
         try{
             const queryTypePas = `SELECT * from personal_data where route = '${route}'`
+            const [rows] = await conn2.query(queryTypePas)
+            if(!rows.length) return 201;
+            const querySearchId = `SELECT location.*, personal_data.*,type_user.type, users.img ,users.description, type_user.status_pas FROM users join personal_data JOIN type_user JOIN location ON location.users_id = personal_data.id_user AND users.id = personal_data.id_user AND personal_data.id_user=type_user.id_user WHERE location.users_id = '${rows[0]?.id_user}'`
+            const data =await conn2.query(querySearchId)
+            const result = data[0][0]
+            if(result.type !== "pas" || !result.status_pas) return 202;
+            const coords = JSON.parse(result?.coords)
+            const pas = {
+                calle:result.street_name,
+                coords,
+                cuit:result.cuit,
+                date:result.date,
+                depto:result.depto,
+                dni:result.dni,
+                email:result.email,
+                phone_number:result.phone_number,
+                postal_code:result.postal_code,
+                type:result.type,
+                id:result.id_user,
+                name:result.name,
+                last_name:result.last_name,
+                location:result.city,
+                description:result.description,
+                route:rows[0].route
+            };
+            return pas
+        }catch(e){
+            return e;
+        }
+    }
+    static async getPasById (id) {
+        try{
+            const queryTypePas = `SELECT * from personal_data where id_user = '${id}'`
             const [rows] = await conn2.query(queryTypePas)
             if(!rows.length) return 201;
             const querySearchId = `SELECT location.*, personal_data.*,type_user.type, users.img ,users.description, type_user.status_pas FROM users join personal_data JOIN type_user JOIN location ON location.users_id = personal_data.id_user AND users.id = personal_data.id_user AND personal_data.id_user=type_user.id_user WHERE location.users_id = '${rows[0]?.id_user}'`
