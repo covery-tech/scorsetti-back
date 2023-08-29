@@ -1,7 +1,7 @@
 const crypto = require("node:crypto")
 const {conn2} = require("../config/connection");
 const jwt = require("jsonwebtoken");
-const { warn } = require("node:console");
+const { encrypt, verified } = require("../utils/bcrypt.handle");
 require('dotenv').config();
 
 class UserModels {
@@ -12,13 +12,14 @@ class UserModels {
         try{
             if(name.length || lastName.length || date.length || password.length || email.length){
                 const [rows] = await conn2.query(querySearchUserSQL)
+                const passHash = await encrypt(password)
                 if(!rows.length){
                     await conn2.query(queryIntroSQL)
                     const idType = crypto.randomUUID()
                     const idPersonalData = crypto.randomUUID()
                     const idInserLocation = crypto.randomUUID()
                     const queryInsertType =`INSERT INTO type_user (id,id_user,type) VALUES ('${idType}','${idUser}',"client")`
-                    const queryInsertPersonalData =`INSERT INTO personal_data (id,name, last_name, date, password, email,id_user) VALUES ('${idPersonalData}',"${name}", "${lastName}", "${date}", "${password}", "${email}",'${idUser}')`
+                    const queryInsertPersonalData =`INSERT INTO personal_data (id,name, last_name, date, password, email,id_user) VALUES ('${idPersonalData}',"${name}", "${lastName}", "${date}", "${passHash}", "${email}",'${idUser}')`
                     const queryInserLocation =`INSERT INTO location (id,users_id) VALUES ('${idInserLocation}','${idUser}')`
                     await conn2.query(queryInsertType)
                     await conn2.query(queryInsertPersonalData)
@@ -38,7 +39,7 @@ class UserModels {
         try{
         const querySearchUserSQL = `SELECT * FROM personal_data WHERE email = '${email}'`
         const [rows] = await conn2.query(querySearchUserSQL)
-            const passwordCorrect = rows[0]?.password === password
+            const passwordCorrect = await verified(password,rows[0]?.password)
             if(!(rows[0] && passwordCorrect)){
                 return "invalid user or password";
             }else{
@@ -250,7 +251,6 @@ class UserModels {
             route:rows[0].route,
             type:type,
         }
-        console.warn(data);
         return data
     } 
     catch (e) {

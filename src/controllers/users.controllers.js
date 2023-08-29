@@ -16,10 +16,7 @@ class UserController {
     }
     static async postLogin(req, res) {
         const { email, password } = req.body;
-        if (!email || !password || !password.length || !email.length)
-            return res.status(400).send("missing data");
         const user = await UserModels.postLogin(email, password);
-        console.log(typeof user);
         if (typeof user === "string") return res.status(401).send(user);
         return res.header("token", user.token).status(200).json({
             result: user.result,
@@ -38,8 +35,8 @@ class UserController {
     }
     static async getUserById(req, res) {
         const { idUser } = req.params;
-        const img = await UserModels.getUserById(idUser);
-        res.status(200).send(img);
+        const user = await UserModels.getUserById(idUser);
+        res.status(200).user(user);
     }
     static async getPasByRoute (req,res) {
         const {route} = req.params

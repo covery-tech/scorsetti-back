@@ -5,6 +5,8 @@ const verifyUser = (user) => (user.type === "superadmin") ? undefined : (user.ty
 class productController {
     static async getPassProductsEneable (req, res) {
         const { idUser } = req.params;
+        const data = req.params;
+        console.log(data)
         const products = await ProductModel.getProductsEneablePas(idUser)
         res.status(200).json(products)
     };
@@ -110,7 +112,6 @@ class productController {
     static async postOrdersBackoffice (req,res) {        
         const {idPas} = req.params
         const { tipo, description, client, users_id } = req.body.values;
-        console.log(idPas, tipo, description, client, users_id)
         const data = await ProductModel.postOrdersBackoffice(idPas,tipo, description, client, users_id)
         res.json(data);
     }
