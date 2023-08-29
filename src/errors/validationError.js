@@ -1,13 +1,13 @@
-class ValidationError extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "ValidationError";
+const CreateErrorFactory = function (name) {
+    return class BussinessError extends Error {
+        constructor(message) {
+            super(message)
+            this.name = name;
+        }
     }
 }
-class ValidationId extends Error {
-    constructor(message) {
-        super(message)
-        this.name = "ValidationId";
-    }
-}
+
+const ValidationError = CreateErrorFactory("ValidationError")
+const ValidationId = CreateErrorFactory("ValidationId")
+
 module.exports = {ValidationError,ValidationId}
