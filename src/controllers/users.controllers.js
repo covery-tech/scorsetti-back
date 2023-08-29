@@ -36,7 +36,7 @@ class UserController {
     static async getUserById(req, res) {
         const { idUser } = req.params;
         const user = await UserModels.getUserById(idUser);
-        res.status(200).user(user);
+        res.status(200).send(user);
     }
     static async getPasByRoute (req,res) {
         const {route} = req.params
