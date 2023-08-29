@@ -1,5 +1,5 @@
 const express = require("express");
-const { UserController } = require("../controllers/users.controllers")
+const { UserController, postLogin } = require("../controllers/users.controllers")
 const {tokenValidation} = require("../lib/validateToken"); 
 const { validationLogin, validateRegister } = require("../validationErrors/validateUser");
 const { validationId } = require("../validationErrors/validateId");
@@ -9,7 +9,7 @@ const router = express.Router();
 
 router
     .post("/postUser",validateRegister,UserController.register)
-    .post("/loginUser",validationLogin,UserController.postLogin)
+    .post("/loginUser",validationLogin,postLogin)
     .get("/getUserById/:idUser",validationId,UserController.getUserById) 
     .get("/getPasByRoute/:route",UserController.getPasByRoute)//para renderizar pagina de cada pas
     .get("/getPasById/:id",validationId,UserController.getPasById)

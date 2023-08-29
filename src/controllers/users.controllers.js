@@ -1,6 +1,17 @@
 const { validateUserType } = require("../lib/validateUserType");
 const { UserModels } = require("../models/users.models");
+const { catchedAsync } = require("../utils/catchedAsync");
+const { response } = require("../utils/response");
 require("dotenv").config();
+
+const postLogin = async (req, res) => {
+    const { email, password } = req.body;
+    const user = await UserModels.postLogin(email, password);
+    return res.header("token", user.token).status(200).json({
+        result: user.result,
+        token: user.token,
+    });
+}
 
 class UserController {
     static async register(req, res) {
@@ -12,7 +23,7 @@ class UserController {
             password,
             email
         );
-        res.status(200).send(user);
+        response(res,user.status,user.data)
     }
     static async postLogin(req, res) {
         const { email, password } = req.body;
@@ -26,7 +37,7 @@ class UserController {
     static async getImage(req, res) {
         const { user } = req;
         const img = await UserModels.getImage(user.id);
-        res.status(200).send(img);
+        response(res,200,img)
     }
     static async getImageLarge(req, res) {
         const { userId } = req.params;
@@ -111,4 +122,5 @@ class UserController {
 
 module.exports = {
     UserController,
+    postLogin:catchedAsync(postLogin)
 };
