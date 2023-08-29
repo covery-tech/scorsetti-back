@@ -5,8 +5,6 @@ const verifyUser = (user) => (user.type === "superadmin") ? undefined : (user.ty
 class productController {
     static async getPassProductsEneable (req, res) {
         const { idUser } = req.params;
-        const data = req.params;
-        console.log(data)
         const products = await ProductModel.getProductsEneablePas(idUser)
         res.status(200).json(products)
     };
