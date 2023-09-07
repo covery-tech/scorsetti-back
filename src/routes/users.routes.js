@@ -10,7 +10,7 @@ const router = express.Router();
 router
     .post("/postUser",validateRegister,UserController.register)
     .post("/loginUser",validationLogin,postLogin)
-    .get("/getUserById/:idUser",validationId,UserController.getUserById) 
+    .get("/getUserById/:idUser",validationId,UserController.getUserById)
     .get("/getPasByRoute/:route",UserController.getPasByRoute)//para renderizar pagina de cada pas
     .get("/getPasById/:id",validationId,UserController.getPasById)
     .put("/updateUser/:type/:idUser",tokenValidation,UserController.updateTypeUser)
@@ -25,4 +25,4 @@ router
     .get("/getAllUsers/:page",tokenValidation,UserController.getAllUsers)
     .get("/pasRoutes/:id",validationId, UserController.getAllRoutes)
     .get("/getPasInfo/:idPas",validationId, UserController.getPasInfo)
-module.exports = router
+module.exports = router;
