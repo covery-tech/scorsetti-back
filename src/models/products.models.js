@@ -389,7 +389,6 @@ class ProductModel {
         const id = crypto.randomUUID();
         const jsonClient = JSON.stringify(client);
         const queryBackoffice = `INSERT INTO orders_backoffice (id,type, description, client, pas_id,users_id) VALUES ('${id}','${tipo}', '${jsonDescription}', '${jsonClient}', '${idPas}','${users_id}')`;
-        console.log(idPas, users_id)
         try {
             const [ResultSetHeader] = await conn2.query(queryBackoffice);
             postNotificationPas(

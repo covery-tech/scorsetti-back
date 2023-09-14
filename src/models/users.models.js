@@ -1,7 +1,8 @@
 const crypto = require("node:crypto")
 const {conn2} = require("../config/connection");
 const jwt = require("jsonwebtoken");
-const { warn } = require("node:console");
+const { encrypt, verified } = require("../utils/bcrypt.handle");
+const { ValidationError } = require("../errors/validationError");
 require('dotenv').config();
 
 class UserModels {
@@ -12,35 +13,40 @@ class UserModels {
         try{
             if(name.length || lastName.length || date.length || password.length || email.length){
                 const [rows] = await conn2.query(querySearchUserSQL)
+                const passHash = await encrypt(password)
                 if(!rows.length){
                     await conn2.query(queryIntroSQL)
                     const idType = crypto.randomUUID()
                     const idPersonalData = crypto.randomUUID()
                     const idInserLocation = crypto.randomUUID()
                     const queryInsertType =`INSERT INTO type_user (id,id_user,type) VALUES ('${idType}','${idUser}',"client")`
-                    const queryInsertPersonalData =`INSERT INTO personal_data (id,name, last_name, date, password, email,id_user) VALUES ('${idPersonalData}',"${name}", "${lastName}", "${date}", "${password}", "${email}",'${idUser}')`
+                    const queryInsertPersonalData =`INSERT INTO personal_data (id,name, last_name, date, password, email,id_user) VALUES ('${idPersonalData}',"${name}", "${lastName}", "${date}", "${passHash}", "${email}",'${idUser}')`
                     const queryInserLocation =`INSERT INTO location (id,users_id) VALUES ('${idInserLocation}','${idUser}')`
                     await conn2.query(queryInsertType)
                     await conn2.query(queryInsertPersonalData)
                     await conn2.query(queryInserLocation)
                     return true;
                 } else {
-                    return "this email is used";
+                    return {data:"this email is used",status:201};
                 }
             }else{
-                return "missing data";
+                return {data:"missing data",status:202};
             }
         }catch(e){
             return e;
         }
     }
     static async postLogin (email, password ) {
-        try{
+        
         const querySearchUserSQL = `SELECT * FROM personal_data WHERE email = '${email}'`
         const [rows] = await conn2.query(querySearchUserSQL)
-            const passwordCorrect = rows[0]?.password === password
-            if(!(rows[0] && passwordCorrect)){
-                return "invalid user or password";
+        if(!rows[0]){
+            throw new ValidationError("invalid password or email",404,"/postLogin");
+        }
+            const passwordCorrect = await verified(password,rows[0]?.password)
+            if(!passwordCorrect){
+                console.log("hola")
+                throw new ValidationError("invalid password or email",404,"/postLogin");
             }else{
             const {name,id_user,email} = rows[0]
             const querySearchUserSQL = `SELECT type FROM type_user WHERE id_user = '${id_user}'`
@@ -63,9 +69,6 @@ class UserModels {
                 token
             }
         }
-    } catch (e) {
-        return e;
-    }
     }
     static async getImage (userId) {
         const [rows] = await conn2.query(`select img from users where id = '${userId}'`)
@@ -241,7 +244,7 @@ class UserModels {
             city:rows[0].city,
             image:rows[0]?.img,
             coords:`${coords?.long},${coords?.lat}`,
-            password:rows[0].password,
+            password:"",
             postal_code:rows[0].postal_code,
             phone_number:rows[0].phone_number,
             province:rows[0].province,
@@ -250,7 +253,6 @@ class UserModels {
             route:rows[0].route,
             type:type,
         }
-        console.warn(data);
         return data
     } 
     catch (e) {
@@ -319,4 +321,6 @@ class UserModels {
     }
 }
 
-module.exports = {UserModels}
+module.exports = {
+    UserModels
+}

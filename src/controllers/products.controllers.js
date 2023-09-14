@@ -110,7 +110,6 @@ class productController {
     static async postOrdersBackoffice (req,res) {        
         const {idPas} = req.params
         const { tipo, description, client, users_id } = req.body.values;
-        console.log(idPas, tipo, description, client, users_id)
         const data = await ProductModel.postOrdersBackoffice(idPas,tipo, description, client, users_id)
         res.json(data);
     }

@@ -1,14 +1,15 @@
 const express = require("express")
 const { productController } = require("../controllers/products.controllers");
 const { tokenValidation } = require("../lib/validateToken");
+const { validationId } = require("../validationErrors/validateId");
 const router = express.Router();
 
 
 router
-    .get("/getProductsPas/:idUser",productController.getPassProductsEneable)
-    .get("/getProductsPasAll/:idUser",productController.getPassProductsAll)
+    .get("/getProductsPas/:idUser",validationId,productController.getPassProductsEneable)
+    .get("/getProductsPasAll/:idUser",validationId,productController.getPassProductsAll)
     .put("/statusProduct/:status/:idPas/:column",tokenValidation,productController.updateStatusProduct)
-    .get("/getMyProductsSale/:idPas/:page",productController.getMyProductsSale)
+    .get("/getMyProductsSale/:idPas/:page",validationId,productController.getMyProductsSale)
     .get("/numberOfOrders",tokenValidation,productController.numberOfOrders)
     .get("/numberOfClients",tokenValidation,productController.numberOfClients)
     .get("/amountOfOrders",tokenValidation,productController.amountOfOrders)
@@ -21,8 +22,8 @@ router
     .post("/emitNotificationAdmin",productController.emitNotificationAdmin)
     .get("/getCountNotis",productController.getCountNotis)
     .get("/getCountNotisPas",tokenValidation,productController.getCountNotisPas)
-    .get("/getAllOrdersByPas/:idPas?",productController.getAllOrdersByPas)
+    .get("/getAllOrdersByPas/:idPas?",validationId,productController.getAllOrdersByPas)
     .get("/getAllOrdersByUser/:page",tokenValidation,productController.getAllOrdersByUser)
-    .post("/postOrdersBack/:idPas?", productController.postOrdersBackoffice)
-    .put("/updateCotiStatus/:id/:cotizated", productController.updateCotizatedProduct)
+    .post("/postOrdersBack/:idPas?",validationId, productController.postOrdersBackoffice)
+    .put("/updateCotiStatus/:id/:cotizated",validationId, productController.updateCotizatedProduct)
 module.exports = router

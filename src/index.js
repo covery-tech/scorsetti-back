@@ -7,6 +7,7 @@ const images = require("./routes/image.routes")
 const mail = require("./routes/email.routes")
 const upload = require("./routes/upload.routes")
 const path = require('path')
+const { responseError } = require("./utils/responseError")
 require("dotenv").config()
 const PORT = process.env.PORT || 3001
 const app = express()
@@ -23,7 +24,9 @@ app.use("/product",products)
 app.use("/image",images)
 app.use("/mail",mail)
 app.use("/upload",upload)
-
+app.use((err,req,res,next)=>{
+responseError(res,err.status,err.message,err.url)
+})
 //server
 app.listen(PORT,()=>{
     console.log(`server on port ${PORT}`)
