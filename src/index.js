@@ -25,9 +25,10 @@ app.use("/image",images)
 app.use("/mail",mail)
 app.use("/upload",upload)
 app.use((err,req,res,next)=>{
+    console.log("holaaaa")
 responseError(res,err.status,err.message,err.url)
 })
-//server
+
 app.listen(PORT,()=>{
     console.log(`server on port ${PORT}`)
 });

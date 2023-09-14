@@ -25,15 +25,6 @@ class UserController {
         );
         response(res,user.status,user.data)
     }
-    static async postLogin(req, res) {
-        const { email, password } = req.body;
-        const user = await UserModels.postLogin(email, password);
-        if (typeof user === "string") return res.status(401).send(user);
-        return res.header("token", user.token).status(200).json({
-            result: user.result,
-            token: user.token,
-        });
-    }
     static async getImage(req, res) {
         const { user } = req;
         const img = await UserModels.getImage(user.id);
