@@ -103,6 +103,7 @@ class productController {
     }
     static async getAllOrdersByPas (req,res) {
         const { idPas } = req.params
+        console.log(idPas)
         const numberPage = parseInt(req.query.page) || 1;
         const data = await ProductModel.getAllOrdersByPas(idPas,numberPage)
         res.json(data);
