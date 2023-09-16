@@ -22,8 +22,8 @@ router
     .post("/emitNotificationAdmin",productController.emitNotificationAdmin)
     .get("/getCountNotis",productController.getCountNotis)
     .get("/getCountNotisPas",tokenValidation,productController.getCountNotisPas)
-    .get("/getAllOrdersByPas/:idPas?",validationId,productController.getAllOrdersByPas)
+    .get("/getAllOrdersByPas/:idPas?",productController.getAllOrdersByPas)
     .get("/getAllOrdersByUser/:page",tokenValidation,productController.getAllOrdersByUser)
-    .post("/postOrdersBack/:idPas?",validationId, productController.postOrdersBackoffice)
+    .post("/postOrdersBack/:idPas?", productController.postOrdersBackoffice)
     .put("/updateCotiStatus/:id/:cotizated",validationId, productController.updateCotizatedProduct)
 module.exports = router

@@ -373,8 +373,10 @@ class ProductModel {
             for (const resultado of response[0]) {
                 sumaTotal += resultado.total_records;
             }
+            console.log({ orders: data, pages: sumaTotal })
             return { orders: data, pages: sumaTotal };
         } catch (err) {
+            console.log(err)
             return err;
         }
     }
